@@ -7,9 +7,8 @@ from flask import request
 from flask import url_for
 from werkzeug.exceptions import abort
 
+bp = Blueprint("image", __name__, url_prefix='/image')
 
-bp = Blueprint("image", __name__)
-
-@bp.route("/image")
+@bp.route("/")
 def index():
-    return "image index"
+    return render_template('image/index.html')

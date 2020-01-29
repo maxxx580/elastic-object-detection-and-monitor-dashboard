@@ -1,4 +1,7 @@
 from flask import Flask 
+from flask import current_app
+from flask import g
+from flask import render_template
 
 import os
 
@@ -6,8 +9,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SECRET_KEY='dev'
     )
 
     if test_config is None:
@@ -30,11 +32,12 @@ def create_app(test_config=None):
     app.register_blueprint(user.bp)
     app.register_blueprint(image.bp)
 
+    cwd = os.getcwd()
     # a simple page that says hello
     @app.route('/')
-    def hello():
-        return 'Hello, World!'
-
+    @app.route('/index')
+    def index():
+        return render_template('index.html')
     return app
 
 
