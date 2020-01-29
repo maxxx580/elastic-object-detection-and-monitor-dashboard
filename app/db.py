@@ -42,7 +42,7 @@ def init_db():
     db = get_db()
     cur = db.cursor()
     with current_app.open_resource("setup.sql") as f:
-        cur.execute(f.read().decode("utf8"))
+        cur.execute(f.read().decode("utf8"), multi=True)
 
 @click.command("init-db")
 @with_appcontext
