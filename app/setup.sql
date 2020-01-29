@@ -51,5 +51,6 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
-Insert into User (username, password) Value ('test_user_1', 'test_password');
-Insert into User (username, password) Value ('test_user_2', 'test_password');
+Insert into User (username, password) Value ('rachel', 'password');
+Insert into User (username, password) Value ('sara', 'password');
+Insert into User (username, password) Value ('eric', 'password');
