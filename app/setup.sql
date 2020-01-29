@@ -54,4 +54,3 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 Insert into User (username, password) Value ('rachel', 'password');
 Insert into User (username, password) Value ('sara', 'password');
 Insert into User (username, password) Value ('eric', 'password');
-
