@@ -23,6 +23,13 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    from . import db
+    db.init_app(app)
+
+    from . import user, image
+    app.register_blueprint(user.bp)
+    app.register_blueprint(image.bp)
+
     # a simple page that says hello
     @app.route('/')
     def hello():
