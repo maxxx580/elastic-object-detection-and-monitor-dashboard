@@ -1,16 +1,22 @@
 from flask import Flask 
 from flask import current_app
-from flask import g
 from flask import render_template
+from datetime import timedelta
+
+from . import user, image, db
+from .user import login_required
 
 import os
 
 def create_app(test_config=None):
+    
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev'
+        SECRET_KEY='dev',
+        PERMANENT_SESSION_LIFETIME=timedelta(minutes=60 * 24)
     )
+
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -19,22 +25,18 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
+
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
 
-    from . import db
     db.init_app(app)
 
-    from . import user, image
     app.register_blueprint(user.bp)
     app.register_blueprint(image.bp)
 
-    from .user import login_required
-
-    # a simple page that says hello
     @app.route('/')
     @app.route('/index')
     @login_required

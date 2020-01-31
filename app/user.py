@@ -12,8 +12,11 @@ from flask import url_for
 from werkzeug.exceptions import abort
 from werkzeug.security import check_password_hash
 from app.db import get_db, close_db
+from . import app
+
 
 bp = Blueprint("user", __name__, url_prefix='/user')
+
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
@@ -27,6 +30,7 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -64,6 +68,7 @@ def login():
         assert('password', 'password')
         
         session.clear()
+        session.permanent = True
         session['username'] = username
 
         return redirect(url_for('index'))
@@ -71,10 +76,6 @@ def login():
     except Exception as e:
         print(e)
         return render_template('user/login.html')
-
-    finally:
-        close_db()
-
 
 
 @bp.route("/")
@@ -89,5 +90,4 @@ def get_all_users():
     cursor = db_connection.cursor()
     cursor.execute('select * from User;')
     rows = cursor.fetchall()
-    close_db()
     return jsonify(rows)
