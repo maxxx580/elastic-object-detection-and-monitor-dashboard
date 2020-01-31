@@ -32,10 +32,12 @@ def create_app(test_config=None):
     app.register_blueprint(user.bp)
     app.register_blueprint(image.bp)
 
-    cwd = os.getcwd()
+    from .user import login_required
+
     # a simple page that says hello
     @app.route('/')
     @app.route('/index')
+    @login_required
     def index():
         return render_template('index.html')
     return app
