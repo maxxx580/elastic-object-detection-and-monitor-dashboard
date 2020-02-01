@@ -12,7 +12,6 @@ from flask import url_for
 from werkzeug.exceptions import abort
 from werkzeug.security import check_password_hash
 from app.db import get_db, close_db
-from . import app
 
 
 bp = Blueprint("user", __name__, url_prefix='/user')
@@ -34,39 +33,40 @@ def login_required(view):
 
 @bp.before_app_request
 def load_logged_in_user():
-    
+
     username = session.get('username')
-    
+
     if username is None:
         g.user = None
-    
+
     g.user = username
 
 
 @bp.route('login', methods=['GET', 'POST'])
 def login():
-    
+
     if request.method == 'GET':
         return render_template('user/login.html')
-    
+
     username = request.form['username']
     password = request.form['password']
 
     try:
-        
+
         assert(username is not None)
         assert(password is not None)
 
         db_cursor = get_db().cursor()
-        db_cursor.execute('select * from user where username="%s"' % (username))
+        db_cursor.execute(
+            'select * from user where username="%s"' % (username))
         user = db_cursor.fetchone()
 
         assert(user is not None)
 
         # uncommet after sign in endpoint compelted
         # assert(check_password_hash(user[1], password))
-        assert('password', 'password')
-        
+        assert(password == 'password')
+
         session.clear()
         session.permanent = True
         session['username'] = username
