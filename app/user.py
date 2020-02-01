@@ -10,6 +10,8 @@ from flask import request
 from flask import session
 from flask import url_for
 from werkzeug.exceptions import abort
+from werkzeug.security import generate_password_hash
+
 from werkzeug.security import check_password_hash
 from app.db import get_db, close_db
 
@@ -40,6 +42,47 @@ def load_logged_in_user():
         g.user = None
 
     g.user = username
+
+
+@bp.route("/register", methods=("GET", "POST"))
+def register():
+    """Register a new user.
+
+    Validates that the username is not already taken. Hashes the
+    password for security.
+    """
+    if request.method == "GET":
+
+        return render_template('user/register.html')
+
+    username = request.form['username']
+    password = request.form['password']
+
+    try:
+
+        assert(username is not None)
+        assert(password is not None)
+
+        cnx=get_db()
+        db_cursor = cnx.cursor()
+        db_cursor.execute('SELECT * FROM user WHERE username="%s"' % (username))
+        user = db_cursor.fetchone()
+
+        assert(user is not None,"user exists")
+        salt = generate_password_hash(password,method='pbkdf2:sha256:20')
+        query = 'INSERT INTO user (username, password,salt) VALUES (%s,%s,%s)'
+        db_cursor.execute(query,(username,password,salt))
+
+        cnx.commit()
+
+        return redirect(url_for("user.login"))
+
+    except Exception as e:
+        print(e)
+        return render_template('user/register.html', e=e)
+
+    finally:
+        close_db()
 
 
 @bp.route('login', methods=['GET', 'POST'])
@@ -91,3 +134,9 @@ def get_all_users():
     cursor.execute('select * from User;')
     rows = cursor.fetchall()
     return jsonify(rows)
+
+@bp.route("/logout")
+def logout():
+    """Clear the current session, including the stored user id."""
+    session.clear()
+    return redirect(url_for("user.login"))
