@@ -1,21 +1,11 @@
 import functools
+
 import bcrypt
-
-from flask import Blueprint
-from flask import flash
-from flask import g
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import request
-from flask import session
-from flask import url_for
+from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
+                   request, session, url_for)
 from werkzeug.exceptions import abort
-from werkzeug.security import generate_password_hash
 
-from werkzeug.security import check_password_hash
-from app.db import get_db, close_db
-
+from app.db import close_db, get_db
 
 bp = Blueprint("user", __name__, url_prefix='/user')
 
@@ -27,8 +17,6 @@ def login_required(view):
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for("user.login"))
-
-        print("user already logged in")
         return view(**kwargs)
 
     return wrapped_view
@@ -66,15 +54,10 @@ def register():
 
         cnx=get_db()
         db_cursor = cnx.cursor()
-        db_cursor.execute('SELECT * FROM user WHERE username="%s"' % (username))
-        user = db_cursor.fetchone()
-
-        assert(user is None, "user exists")
-
         salt = bcrypt.gensalt()
         pw_hashed = bcrypt.hashpw(password, salt)
-        query = 'INSERT INTO user (username, password,salt) VALUES (%s,%s,%s)'
-        db_cursor.execute(query,(username,pw_hashed,salt))
+        query = 'INSERT INTO user (username, password) VALUES (%s,%s)'
+        db_cursor.execute(query,(username,pw_hashed))
 
         cnx.commit()
 
@@ -108,10 +91,7 @@ def login():
         user = db_cursor.fetchone()
 
         assert(user is not None)
-
-        # uncommet after sign in endpoint compelted
-        # assert(check_password_hash(user[1], password))
-        assert(password == 'password')
+        assert(bcrypt.checkpw(password.encode('utf-8'), user[1].encode('utf-8')))
 
         session.clear()
         session.permanent = True

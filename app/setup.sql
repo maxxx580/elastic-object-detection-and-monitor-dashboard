@@ -26,7 +26,6 @@ DROP TABLE IF EXISTS User;
 CREATE TABLE `ece1779`.`User` (
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
-  `salt` VARCHAR(45),
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = InnoDB;
@@ -51,7 +50,3 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-Insert into User (username, password, salt) Value ('rachel', 'password', 'salt');
-Insert into User (username, password, salt) Value ('sara', 'password', 'salt');
-Insert into User (username, password, salt) Value ('eric', 'password', 'salt');
