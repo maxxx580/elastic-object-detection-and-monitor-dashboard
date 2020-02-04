@@ -1,12 +1,11 @@
-from flask import Flask 
-from flask import current_app
-from flask import render_template
+import os
 from datetime import timedelta
 
-from . import user, image, db
+from flask import Flask, current_app, render_template
+
+from . import db, image, user
 from .user import login_required
 
-import os
 
 def create_app(test_config=None):
     

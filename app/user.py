@@ -1,21 +1,12 @@
 import functools
+
 import bcrypt
-
-from flask import Blueprint
-from flask import flash
-from flask import g
-from flask import jsonify
-from flask import redirect
-from flask import render_template
-from flask import request
-from flask import session
-from flask import url_for
+from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
+                   request, session, url_for)
 from werkzeug.exceptions import abort
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from werkzeug.security import check_password_hash
-from app.db import get_db, close_db
-
+from app.db import close_db, get_db
 
 bp = Blueprint("user", __name__, url_prefix='/user')
 
@@ -66,11 +57,6 @@ def register():
 
         cnx=get_db()
         db_cursor = cnx.cursor()
-        db_cursor.execute('SELECT * FROM user WHERE username="%s"' % (username))
-        user = db_cursor.fetchone()
-
-        assert(user is None, "user exists")
-
         salt = bcrypt.gensalt()
         pw_hashed = bcrypt.hashpw(password, salt)
         query = 'INSERT INTO user (username, password,salt) VALUES (%s,%s,%s)'

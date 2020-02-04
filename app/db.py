@@ -1,10 +1,7 @@
-import mysql.connector
-
 import click
-from flask import current_app
-from flask import g
+import mysql.connector
+from flask import current_app, g
 from flask.cli import with_appcontext
-
 
 config = {
         'username':'root',
