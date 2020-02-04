@@ -1,11 +1,16 @@
--e git+https://github.com/maxxx580/ece1779-a1.git@7d2459d5fe6df78cc44c099a5a8bb643e2631ba7#egg=app
+bcrypt==3.1.7
+cffi==1.13.2
 Click==7.0
 dnspython==1.16.0
 Flask==1.1.1
+Flask-Bcrypt==0.7.1
 itsdangerous==1.1.0
-Jinja2==2.11.0
+Jinja2==2.11.1
 MarkupSafe==1.1.1
 mysql-connector-python==8.0.19
+numpy==1.18.1
+opencv-contrib-python==4.2.0.32
 protobuf==3.6.1
+pycparser==2.19
 six==1.14.0
 Werkzeug==0.16.1
