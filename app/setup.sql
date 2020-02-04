@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS User;
 -- -----------------------------------------------------
 CREATE TABLE `ece1779`.`User` (
   `username` VARCHAR(45) NOT NULL,
-  `password` VARCHAR(45) NOT NULL,
+  `password` VARCHAR(64) NOT NULL,
   `salt` VARCHAR(45),
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))

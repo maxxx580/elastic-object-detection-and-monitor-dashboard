@@ -1,4 +1,5 @@
 import functools
+import bcrypt
 
 from flask import Blueprint
 from flask import flash
@@ -56,7 +57,7 @@ def register():
         return render_template('user/register.html')
 
     username = request.form['username']
-    password = request.form['password']
+    password = request.form['password'].encode('utf-8')
 
     try:
 
@@ -68,10 +69,12 @@ def register():
         db_cursor.execute('SELECT * FROM user WHERE username="%s"' % (username))
         user = db_cursor.fetchone()
 
-        assert(user is not None,"user exists")
-        salt = generate_password_hash(password,method='pbkdf2:sha256:20')
+        assert(user is None, "user exists")
+
+        salt = bcrypt.gensalt()
+        pw_hashed = bcrypt.hashpw(password, salt)
         query = 'INSERT INTO user (username, password,salt) VALUES (%s,%s,%s)'
-        db_cursor.execute(query,(username,password,salt))
+        db_cursor.execute(query,(username,pw_hashed,salt))
 
         cnx.commit()
 
@@ -122,12 +125,13 @@ def login():
 
 
 @bp.route("/")
+@login_required
 def get_users():
     return render_template('user/index.html')
 
-
 # db connection test only
 @bp.route('/all')
+@login_required
 def get_all_users():
     db_connection = get_db()
     cursor = db_connection.cursor()
@@ -136,6 +140,7 @@ def get_all_users():
     return jsonify(rows)
 
 @bp.route("/logout")
+@login_required
 def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
