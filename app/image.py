@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import flash
 from flask import g
-from flask import redirect
+from flask import redirect, session
 from flask import render_template
 from flask import request
 import os
@@ -41,13 +41,17 @@ def upload_image():
     target = os.path.join(APP_ROOT, 'uploaded_images')
     print("!!!!!target"+target)
     # how to fetch username
-    username = "eric"
+
+    username = session.get("username")
+    assert(username=="eric")
+    print("!!!!!"+username)
     # timestamp = calendar.timegm(time.gmtime())
     ts = time.time()
     timestamp = str(int(ts))
     # timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print("!!!!!timestamp"+timestamp)
     # timestamp = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    destination0 = ""
 
     if not os.path.isdir(target):
         os.mkdir(target)
@@ -56,13 +60,14 @@ def upload_image():
         # filename should use username_timestamp
         filename = file.filename
         destination = "/".join([target, filename])
+        destination0 = destination
         print("!!!!!location"+destination)
         file.save(destination)
 
     cnx = get_db()
     db_cursor = cnx.cursor()
-    query = 'INSERT INTO image (location, username, current_time) VALUES (%s,%s,%s)'
-    # db_cursor.execute(query, (destination, username, timestamp))
+    query = 'INSERT INTO image (location, username, currenttime) VALUES (%s,%s,%s)'
+    db_cursor.execute(query, (destination0, username, timestamp))
 
     cnx.commit()
     close_db()
