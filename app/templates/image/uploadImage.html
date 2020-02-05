@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Object Detection</title>
+<!--    <h1> Upload Image </h1>>-->
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Upload Image</h1>
+                <hr>
+                <form id="upload-image" action="{{url_for('image.upload_image')}}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Select image</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" name="image" id="image" accept="image/*" >
+                            <label class="custom-file-label" for="image">Select an image...</label>
+                        </div>
+                    </div>
+<!--                    <button type="submit" class="btn btn-primary">Upload image</button>-->
+                    <input type="submit" value="upload">
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
