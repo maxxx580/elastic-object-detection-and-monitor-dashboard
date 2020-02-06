@@ -1,4 +1,5 @@
 import functools
+import logging
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
@@ -15,8 +16,11 @@ def login_required(view):
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
+        logger = logging.getLogger()
         if g.user is None:
+            logger.info("user yet logged in, redirecting log-in page")
             return redirect(url_for("user.login"))
+        logger.info('user already logged in')
         return view(**kwargs)
 
     return wrapped_view
@@ -73,7 +77,7 @@ def register():
 
 @bp.route('login', methods=['GET', 'POST'])
 def login():
-
+    logger = logging.getLogger()
     if request.method == 'GET':
         return render_template('user/login.html')
 
@@ -102,10 +106,11 @@ def login():
         return redirect(url_for('index'))
 
     except AssertionError as e:
-        print(e.args)
+        logger.error(e.args)
         return render_template('user/login.html', e=e.args)
 
-    except:
+    except Exception as e:
+        logger.error(e)
         return render_template('user/login.html')
 
 
