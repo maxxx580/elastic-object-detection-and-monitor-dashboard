@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS User;
 -- -----------------------------------------------------
 -- Table `ece1779`.`User`
 -- -----------------------------------------------------
-CREATE TABLE `ece1779`.`User` (
+CREATE TABLE IF NOT EXISTS `ece1779`.`User` (
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
   PRIMARY KEY (`username`),
@@ -33,7 +33,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `ece1779`.`Image`
 -- -----------------------------------------------------
-CREATE TABLE `ece1779`.`Image` (
+CREATE TABLE IF NOT EXISTS `ece1779`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `location` VARCHAR(200) NOT NULL,
   `username` VARCHAR(45) NOT NULL,
