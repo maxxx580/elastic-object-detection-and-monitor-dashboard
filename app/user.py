@@ -1,4 +1,5 @@
 import functools
+import logging
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
@@ -15,8 +16,11 @@ def login_required(view):
 
     @functools.wraps(view)
     def wrapped_view(**kwargs):
+        logger = logging.getLogger()
         if g.user is None:
+            logger.info("user yet logged in, redirecting log-in page")
             return redirect(url_for("user.login"))
+        logger.info('user already logged in')
         return view(**kwargs)
 
     return wrapped_view
@@ -52,12 +56,12 @@ def register():
         assert(username is not None)
         assert(password is not None)
 
-        cnx=get_db()
+        cnx = get_db()
         db_cursor = cnx.cursor()
         salt = bcrypt.gensalt()
         pw_hashed = bcrypt.hashpw(password, salt)
         query = 'INSERT INTO user (username, password) VALUES (%s,%s)'
-        db_cursor.execute(query,(username,pw_hashed))
+        db_cursor.execute(query, (username, pw_hashed))
 
         cnx.commit()
 
@@ -73,7 +77,7 @@ def register():
 
 @bp.route('login', methods=['GET', 'POST'])
 def login():
-
+    logger = logging.getLogger()
     if request.method == 'GET':
         return render_template('user/login.html')
 
@@ -82,42 +86,33 @@ def login():
 
     try:
 
-        assert(username is not None)
-        assert(password is not None)
+        assert username is not None, "invalid user name"
+        assert password is not None, "invalid passwprd"
 
         db_cursor = get_db().cursor()
         db_cursor.execute(
             'select * from user where username="%s"' % (username))
         user = db_cursor.fetchone()
 
-        assert(user is not None)
-        assert(bcrypt.checkpw(password.encode('utf-8'), user[1].encode('utf-8')))
+        assert user is not None, "invalid credential"
+        assert bcrypt.checkpw(password.encode('utf-8'),
+                              user[1].encode('utf-8')), "invalid credential"
 
         session.clear()
         session.permanent = True
+
         session['username'] = username
 
         return redirect(url_for('index'))
 
+    except AssertionError as e:
+        logger.error(e.args)
+        return render_template('user/login.html', e=e.args)
+
     except Exception as e:
-        print(e)
+        logger.error(e)
         return render_template('user/login.html')
 
-
-@bp.route("/")
-@login_required
-def get_users():
-    return render_template('user/index.html')
-
-# db connection test only
-@bp.route('/all')
-@login_required
-def get_all_users():
-    db_connection = get_db()
-    cursor = db_connection.cursor()
-    cursor.execute('select * from User;')
-    rows = cursor.fetchall()
-    return jsonify(rows)
 
 @bp.route("/logout")
 @login_required
