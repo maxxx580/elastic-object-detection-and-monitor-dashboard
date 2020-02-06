@@ -10,10 +10,9 @@ itsdangerous==1.1.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
 mysql-connector-python==8.0.19
-numpy==1.18.1
+numpy==1.16.6
 opencv-contrib-python==4.2.0.32
 protobuf==3.6.1
 pycparser==2.19
-pylint==2.4.4
 six==1.14.0
 Werkzeug==0.16.1
