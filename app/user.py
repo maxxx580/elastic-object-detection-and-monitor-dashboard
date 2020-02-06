@@ -63,6 +63,7 @@ def register():
         assert(username is not None)
         assert(password is not None)
 
+<<<<<<< Updated upstream
         cnx=get_db()
         db_cursor = cnx.cursor()
         db_cursor.execute('SELECT * FROM user WHERE username="%s"' % (username))
@@ -72,6 +73,23 @@ def register():
         salt = generate_password_hash(password,method='pbkdf2:sha256:20')
         query = 'INSERT INTO user (username, password,salt) VALUES (%s,%s,%s)'
         db_cursor.execute(query,(username,password,salt))
+=======
+        assert len(username) <=100, "Username should be less than 100 characters"
+        cnx = get_db()
+        db_cursor = cnx.cursor()
+        salt = bcrypt.gensalt()
+        pw_hashed = bcrypt.hashpw(password, salt)
+
+        db_cursor = get_db().cursor()
+        db_cursor.execute(
+            'select * from user where username="%s"' % (username))
+        user = db_cursor.fetchone()
+
+        assert user is None, "Username exists"
+
+        query = 'INSERT INTO user (username, password) VALUES (%s,%s)'
+        db_cursor.execute(query, (username, pw_hashed))
+>>>>>>> Stashed changes
 
         cnx.commit()
 
@@ -79,6 +97,7 @@ def register():
 
     except Exception as e:
         print(e)
+        flash(e)
         return render_template('user/register.html', e=e)
 
     finally:
