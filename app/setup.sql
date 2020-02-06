@@ -23,10 +23,9 @@ DROP TABLE IF EXISTS User;
 -- -----------------------------------------------------
 -- Table `ece1779`.`User`
 -- -----------------------------------------------------
-CREATE TABLE `ece1779`.`User` (
+CREATE TABLE IF NOT EXISTS `ece1779`.`User` (
   `username` VARCHAR(45) NOT NULL,
-  `password` VARCHAR(45) NOT NULL,
-  `salt` VARCHAR(45),
+  `password` VARCHAR(64) NOT NULL,
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = InnoDB;
@@ -34,10 +33,11 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `ece1779`.`Image`
 -- -----------------------------------------------------
-CREATE TABLE `ece1779`.`Image` (
+CREATE TABLE IF NOT EXISTS `ece1779`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `location` VARCHAR(45) NOT NULL,
+  `location` VARCHAR(200) NOT NULL,
   `username` VARCHAR(45) NOT NULL,
+  `currenttime` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   INDEX `username_idx` (`username` ASC),
@@ -51,7 +51,3 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-Insert into User (username, password, salt) Value ('rachel', 'password', 'salt');
-Insert into User (username, password, salt) Value ('sara', 'password', 'salt');
-Insert into User (username, password, salt) Value ('eric', 'password', 'salt');
