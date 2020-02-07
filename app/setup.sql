@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `ece1779`.`Image` (
   `location` VARCHAR(200) NOT NULL,
   `username` VARCHAR(45) NOT NULL,
   `currenttime` VARCHAR(45) NOT NULL,
+  `pictype` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   INDEX `username_idx` (`username` ASC),
