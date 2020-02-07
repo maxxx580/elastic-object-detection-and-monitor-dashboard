@@ -134,7 +134,14 @@ span.psw {
     
           <label for="psw"><b>Password</b></label>
           <input type="password" placeholder="Enter Password" name="password" required>
-            
+
+                            {% for message in get_flashed_messages() %}
+                <div class="alert alert-warning">
+                    <Label type="text" class="close" data-dismiss="alert">{{ message }}</Label>
+
+                </div>
+            {% endfor %}
+
           <button type="submit">Login</button>
           <label>
             <input type="checkbox" checked="checked" name="remember"> Remember me
@@ -146,6 +153,7 @@ span.psw {
           <span class="psw">Forgot <a href="#">password?</a></span>
         </div>
       </form>
+
   
 
 </div>
