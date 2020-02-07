@@ -24,5 +24,5 @@ setup(
         'pylint',
         'six',
         'Werkzeug'
-    ],
+    ]
 )
