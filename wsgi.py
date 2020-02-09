@@ -6,4 +6,3 @@ logging.basicConfig(level=logging.DEBUG)
 
 if __name__ == "__main__":
     webapp.run(debug=True)
-
