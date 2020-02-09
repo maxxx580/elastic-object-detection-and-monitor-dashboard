@@ -14,16 +14,16 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Schema mydb
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `ece1779` DEFAULT CHARACTER SET utf8 ;
-USE `ece1779` ;
+CREATE SCHEMA IF NOT EXISTS `ece1779_a1` DEFAULT CHARACTER SET utf8 ;
+USE `ece1779_a1` ;
 
 DROP TABLE IF EXISTS Image;
 DROP TABLE IF EXISTS User;
 
 -- -----------------------------------------------------
--- Table `ece1779`.`User`
+-- Table `ece1779_a1`.`User`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ece1779`.`User` (
+CREATE TABLE IF NOT EXISTS `ece1779_a1`.`User` (
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
   PRIMARY KEY (`username`),
@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS `ece1779`.`User` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
--- Table `ece1779`.`Image`
+-- Table `ece1779_a1`.`Image`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ece1779`.`Image` (
+CREATE TABLE IF NOT EXISTS `ece1779_a1`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `location` VARCHAR(200) NOT NULL,
   `username` VARCHAR(45) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `ece1779`.`Image` (
   INDEX `username_idx` (`username` ASC),
   CONSTRAINT `username`
     FOREIGN KEY (`username`)
-    REFERENCES `ece1779`.`User` (`username`)
+    REFERENCES `ece1779_a1`.`User` (`username`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
