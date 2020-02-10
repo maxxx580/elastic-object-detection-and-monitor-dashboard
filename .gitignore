@@ -31,3 +31,6 @@ build/
 **/*.gif
 *.png
 **/*.png
+
+start.sh
+app/db.py
