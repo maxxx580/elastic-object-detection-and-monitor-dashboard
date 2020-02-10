@@ -1,12 +1,11 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, current_app, render_template
+from flask import Flask, current_app, render_template, abort
 
 from . import db, image, user
 from .user import login_required
-from .error import page_not_found
-
+from app import error
 
 def create_app(test_config=None):
 
@@ -34,7 +33,10 @@ def create_app(test_config=None):
 
     app.register_blueprint(user.bp)
     app.register_blueprint(image.bp)
-    app.register_error_handler(404, page_not_found)
+    app.register_error_handler(404, error.page_not_found)
+    app.register_error_handler(403, error.forbidden)
+    app.register_error_handler(401, error.unauthorized)
+    app.register_error_handler(500, error.server_error)
 
     @app.route('/')
     @app.route('/index')
