@@ -135,6 +135,7 @@ span.psw {
           <label for="psw"><b>Password</b></label>
           <input type="password" placeholder="Enter Password" name="password" required>
 
+<<<<<<< Updated upstream
                             {% for message in get_flashed_messages() %}
                 <div class="alert alert-warning">
                     <Label type="text" class="close" data-dismiss="alert">{{ message }}</Label>
@@ -142,6 +143,14 @@ span.psw {
                 </div>
             {% endfor %}
 
+=======
+            {% for message in get_flashed_messages() %}
+                <div class="alert alert-warning">
+                    <label type="text" class="close" data-dismiss="alert"></label>
+                    {{ message }}
+                </div>
+            {% endfor %}
+>>>>>>> Stashed changes
           <button type="submit">Login</button>
           <label>
             <input type="checkbox" checked="checked" name="remember"> Remember me

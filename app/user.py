@@ -1,5 +1,6 @@
 import functools
 import logging
+from typing import re
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
@@ -53,10 +54,21 @@ def register():
 
     try:
 
+<<<<<<< Updated upstream
         assert username is not None, "Please enter username"
         assert password is not None, "Please enter password"
 
         assert len(username) < 100, "Username should be less than 100 characters"
+=======
+        result_name = re.compile(r"[\u4e00-\u9fa5]")
+        result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
+
+        assert username is not None, "Please enter username"
+        assert password is not None, "Please enter password"
+
+        assert result_name.match(username), "Please check the format of username"
+        assert result_password.match(password),"Password should have 6 to 18 characters"
+>>>>>>> Stashed changes
 
         cnx = get_db()
         db_cursor = cnx.cursor()
@@ -64,9 +76,14 @@ def register():
         db_cursor.execute(
             'select * from user where username="%s"' % (username))
         user = db_cursor.fetchone()
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         assert user is None, "Username exists"
 
         salt = bcrypt.gensalt()
+
         pw_hashed = bcrypt.hashpw(password, salt)
         query = 'INSERT INTO User (username, password) VALUES (%s,%s)'
         db_cursor.execute(query, (username, pw_hashed))
@@ -76,9 +93,15 @@ def register():
         return redirect(url_for("user.login"))
 
     except Exception as e:
+        flash(e)
         print(e)
         flash(e)
         return render_template('user/register.html', e=e)
+
+    except AssertionError as e:
+        flash(e)
+        print(e)
+        return render_template('user/login.html', e=e.args)
 
     finally:
         close_db()
@@ -95,7 +118,11 @@ def login():
 
     try:
 
+<<<<<<< Updated upstream
         assert username is not None, "invalid user name"
+=======
+        assert username is not None, "invalid username"
+>>>>>>> Stashed changes
         assert password is not None, "invalid password"
 
         db_cursor = get_db().cursor()
