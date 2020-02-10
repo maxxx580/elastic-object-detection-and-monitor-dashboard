@@ -68,7 +68,7 @@ def register():
 
         salt = bcrypt.gensalt()
         pw_hashed = bcrypt.hashpw(password, salt)
-        query = 'INSERT INTO user (username, password) VALUES (%s,%s)'
+        query = 'INSERT INTO User (username, password) VALUES (%s,%s)'
         db_cursor.execute(query, (username, pw_hashed))
 
         cnx.commit()
@@ -100,7 +100,7 @@ def login():
 
         db_cursor = get_db().cursor()
         db_cursor.execute(
-            'select * from user where username="%s"' % (username))
+            'select * from User where username="%s"' % (username))
         user = db_cursor.fetchone()
 
         assert user is not None, "invalid credential"

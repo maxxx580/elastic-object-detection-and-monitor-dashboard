@@ -5,6 +5,19 @@
     <title>Show uploaded image</title>
 </head>
 <body>
-    <img src=/Users/wangran/Documents/GitHub/ece1779-a1/app/uploaded_images/pic7.jpg alt="User Image">
+    <div>
+        <br> Original image
+        <img src="../static/uploaded_images/{{ user_image }}" alt="User Image">
+    </div>
+    <div>
+        <br> Processed image
+        <img src="../static/uploaded_images/{{ user_image_pro }}" alt="User Image">
+    </div>
+    <div>
+        <br> Thumbnail
+        <img src="../static/uploaded_images/{{ user_image_thumb }}" alt="User Image">
+    </div>
+
+
 </body>
 </html>

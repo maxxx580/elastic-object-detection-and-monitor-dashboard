@@ -85,7 +85,7 @@ def upload_image():
 def saveImagePath(location, username, currenttime, pictype):
     cnx = get_db()
     db_cursor = cnx.cursor()
-    query = 'INSERT INTO image (location, username, currenttime, pictype) VALUES (%s,%s,%s,%s)'
+    query = 'INSERT INTO Image (location, username, currenttime, pictype) VALUES (%s,%s,%s,%s)'
     db_cursor.execute(query, (location, username, currenttime, pictype))
     cnx.commit()
     close_db()
