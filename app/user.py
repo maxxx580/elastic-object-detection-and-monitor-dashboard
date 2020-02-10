@@ -61,8 +61,6 @@ def register():
         result_name = re.compile(r"[\u4e00-\u9fa5]")
         result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
 
-        assert username is not None, "Please enter username"
-        assert password is not None, "Please enter password"
 
         assert result_name.match(username), "Please check the format of username"
         assert result_password.match(password),"Password should have 6 to 18 characters"
