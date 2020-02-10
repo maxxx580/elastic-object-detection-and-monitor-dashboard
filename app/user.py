@@ -1,9 +1,11 @@
 import functools
 import logging
+from typing import re
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
-                   request, session, url_for)
+                   request, session, url_for,abort)
+
 from werkzeug.exceptions import abort
 
 from app.db import close_db, get_db
@@ -40,7 +42,6 @@ def load_logged_in_user():
 @bp.route("/register", methods=("GET", "POST"))
 def register():
     """Register a new user.
-
     Validates that the username is not already taken. Hashes the
     password for security.
     """
@@ -53,14 +54,30 @@ def register():
 
     try:
 
-        assert(username is not None)
-        assert(password is not None)
+        assert username is not None, "Please enter username"
+        assert password is not None, "Please enter password"
+
+
+        result_name = re.compile(r"[\u4e00-\u9fa5]")
+        result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
+
+
+        assert result_name.match(username), "Please check the format of username"
+        assert result_password.match(password),"Password should have 6 to 18 characters"
+
 
         cnx = get_db()
         db_cursor = cnx.cursor()
+
+        db_cursor.execute(
+            'select * from user where username="%s"' % (username))
+        user = db_cursor.fetchone()
+        assert user is None, "Username exists"
+
         salt = bcrypt.gensalt()
+
         pw_hashed = bcrypt.hashpw(password, salt)
-        query = 'INSERT INTO user (username, password) VALUES (%s,%s)'
+        query = 'INSERT INTO User (username, password) VALUES (%s,%s)'
         db_cursor.execute(query, (username, pw_hashed))
 
         cnx.commit()
@@ -68,8 +85,15 @@ def register():
         return redirect(url_for("user.login"))
 
     except Exception as e:
+        flash(e)
         print(e)
+        flash(e)
         return render_template('user/register.html', e=e)
+
+    except AssertionError as e:
+        flash(e)
+        print(e)
+        return render_template('user/login.html', e=e.args)
 
     finally:
         close_db()
@@ -86,12 +110,13 @@ def login():
 
     try:
 
-        assert username is not None, "invalid user name"
-        assert password is not None, "invalid passwprd"
+
+        assert username is not None, "invalid username"
+        assert password is not None, "invalid password"
 
         db_cursor = get_db().cursor()
         db_cursor.execute(
-            'select * from user where username="%s"' % (username))
+            'select * from User where username="%s"' % (username))
         user = db_cursor.fetchone()
 
         assert user is not None, "invalid credential"
@@ -106,10 +131,12 @@ def login():
         return redirect(url_for('index'))
 
     except AssertionError as e:
+        flash(e)
         logger.error(e.args)
         return render_template('user/login.html', e=e.args)
 
     except Exception as e:
+        flash(e)
         logger.error(e)
         return render_template('user/login.html')
 
