@@ -54,12 +54,10 @@ def register():
 
     try:
 
-<<<<<<< Updated upstream
         assert username is not None, "Please enter username"
         assert password is not None, "Please enter password"
 
-        assert len(username) < 100, "Username should be less than 100 characters"
-=======
+
         result_name = re.compile(r"[\u4e00-\u9fa5]")
         result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
 
@@ -68,7 +66,7 @@ def register():
 
         assert result_name.match(username), "Please check the format of username"
         assert result_password.match(password),"Password should have 6 to 18 characters"
->>>>>>> Stashed changes
+
 
         cnx = get_db()
         db_cursor = cnx.cursor()
@@ -76,10 +74,6 @@ def register():
         db_cursor.execute(
             'select * from user where username="%s"' % (username))
         user = db_cursor.fetchone()
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
         assert user is None, "Username exists"
 
         salt = bcrypt.gensalt()
@@ -118,11 +112,8 @@ def login():
 
     try:
 
-<<<<<<< Updated upstream
-        assert username is not None, "invalid user name"
-=======
+
         assert username is not None, "invalid username"
->>>>>>> Stashed changes
         assert password is not None, "invalid password"
 
         db_cursor = get_db().cursor()
