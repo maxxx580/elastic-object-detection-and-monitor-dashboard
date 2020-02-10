@@ -4,13 +4,11 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 
 config = {
-        'username':'root',
-        'password':'password',
-        'host':"127.0.0.1",
-        'port':3306,
-        'db':'ece1779'
-
-
+    'username': 'root',
+    'password': 'password',
+    'host': "127.0.0.1",
+    'port': 3306,
+    'db': 'ece1779_a1'
 }
 
 

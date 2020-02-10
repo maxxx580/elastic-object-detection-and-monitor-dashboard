@@ -22,3 +22,12 @@ build/
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
+
+*.jpe
+**/*.jpg
+*.jpee
+**/*.jpeg
+*.gif
+**/*.gif
+*.png
+**/*.png
