@@ -89,7 +89,7 @@ def register():
     except AssertionError as e:
         flash(e)
         print(e)
-        return render_template('user/login.html', e=e.args)
+        return render_template('user/register.html', e=e.args)
 
     except Exception as e:
         flash(e)
