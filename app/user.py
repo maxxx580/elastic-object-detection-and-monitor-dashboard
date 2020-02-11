@@ -4,7 +4,7 @@ from typing import re
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
-                   request, session, url_for,abort)
+                   request, session, url_for, abort)
 
 from werkzeug.exceptions import abort
 
@@ -57,14 +57,16 @@ def register():
         assert username is not None, "Please enter username"
         assert password is not None, "Please enter password"
 
+        # result_name = re.compile(r"[\u4e00-\u9fa5]")
+        # result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
+        #
+        #
+        # assert result_name.match(username), "Please check the format of username"
+        # assert result_password.match(password),"Password should have 6 to 18 characters"
 
-        result_name = re.compile(r"[\u4e00-\u9fa5]")
-        result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
-
-
-        assert result_name.match(username), "Please check the format of username"
-        assert result_password.match(password),"Password should have 6 to 18 characters"
-
+        assert len(password) >= 6, "Password should be longer than 6 characters"
+        assert 2 <= len(
+            username) <= 100, "Username should have 2~100 characters"
 
         cnx = get_db()
         db_cursor = cnx.cursor()
@@ -84,16 +86,15 @@ def register():
 
         return redirect(url_for("user.login"))
 
-    except Exception as e:
-        flash(e)
-        print(e)
-        flash(e)
-        return render_template('user/register.html', e=e)
-
     except AssertionError as e:
         flash(e)
         print(e)
         return render_template('user/login.html', e=e.args)
+
+    except Exception as e:
+        flash(e)
+        print(e)
+        return render_template('user/register.html', e=e)
 
     finally:
         close_db()
@@ -109,7 +110,6 @@ def login():
     password = request.form['password']
 
     try:
-
 
         assert username is not None, "invalid username"
         assert password is not None, "invalid password"
@@ -139,6 +139,8 @@ def login():
         flash(e)
         logger.error(e)
         return render_template('user/login.html')
+    finally:
+        close_db()
 
 
 @bp.route("/logout")
