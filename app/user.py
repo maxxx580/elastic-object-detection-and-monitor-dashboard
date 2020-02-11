@@ -58,13 +58,16 @@ def register():
         assert password is not None, "Please enter password"
 
 
-        result_name = re.compile(r"[\u4e00-\u9fa5]")
-        result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
+        # result_name = re.compile(r"[\u4e00-\u9fa5]")
+        # result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
+        #
+        #
+        # assert result_name.match(username), "Please check the format of username"
+        # assert result_password.match(password),"Password should have 6 to 18 characters"
 
 
-        assert result_name.match(username), "Please check the format of username"
-        assert result_password.match(password),"Password should have 6 to 18 characters"
-
+        assert len(password) >= 6, "Password should be longer than 6 characters"
+        assert 2 <= len(username) <= 100, "Username should have 2~100 characters"
 
         cnx = get_db()
         db_cursor = cnx.cursor()
@@ -87,7 +90,6 @@ def register():
     except Exception as e:
         flash(e)
         print(e)
-        flash(e)
         return render_template('user/register.html', e=e)
 
     except AssertionError as e:
