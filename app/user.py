@@ -72,7 +72,7 @@ def register():
         db_cursor = cnx.cursor()
 
         db_cursor.execute(
-            'select * from user where username="%s"' % (username))
+            'select * from User where username="%s"' % (username))
         user = db_cursor.fetchone()
         assert user is None, "Username exists"
 
