@@ -1,6 +1,5 @@
 import functools
 import logging
-from typing import re
 
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
@@ -10,7 +9,7 @@ from werkzeug.exceptions import abort
 
 from app.db import close_db, get_db
 
-bp = Blueprint("user", __name__, url_prefix='/user')
+bp = Blueprint("user", __name__)
 
 
 def login_required(view):
@@ -39,14 +38,13 @@ def load_logged_in_user():
     g.user = username
 
 
-@bp.route("/register", methods=("GET", "POST"))
+@bp.route("/api/register", methods=("GET", "POST"))
 def register():
     """Register a new user.
     Validates that the username is not already taken. Hashes the
     password for security.
     """
     if request.method == "GET":
-
         return render_template('user/register.html')
 
     username = request.form['username']
@@ -89,7 +87,7 @@ def register():
     except AssertionError as e:
         flash(e)
         print(e)
-        return render_template('user/login.html', e=e.args)
+        return render_template('user/register.html', e=e.args)
 
     except Exception as e:
         flash(e)
@@ -100,7 +98,7 @@ def register():
         close_db()
 
 
-@bp.route('login', methods=['GET', 'POST'])
+@bp.route('/api/login', methods=['GET', 'POST'])
 def login():
     logger = logging.getLogger()
     if request.method == 'GET':
@@ -128,7 +126,7 @@ def login():
 
         session['username'] = username
 
-        return redirect(url_for('index'))
+        return redirect(url_for('image.upload_image'))
 
     except AssertionError as e:
         flash(e)
@@ -143,7 +141,7 @@ def login():
         close_db()
 
 
-@bp.route("/logout")
+@bp.route("/api/logout")
 @login_required
 def logout():
     """Clear the current session, including the stored user id."""

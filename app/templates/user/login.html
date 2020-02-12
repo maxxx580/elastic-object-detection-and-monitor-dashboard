@@ -140,7 +140,7 @@ span.psw {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-    <form class="modal-content animate" action="/user/login" method="post">
+    <form class="modal-content animate" action="/api/login" method="post">
         <div class="container">
           {% for message in get_flashed_messages() %}
             <div class="alert alert-warning">
@@ -159,7 +159,7 @@ span.psw {
         <div class="container" style="background-color:#f1f1f1">
           <span class="psw">		
            New user ?		
-            <a class="btn btn-primary" role="button" aria-pressed="true" href="{{ url_for('user.register') }}"">register</a>		
+            <a class="btn btn-primary" role="button" aria-pressed="true" href="{{ url_for('user.register') }}"">register</a>
          </span>
         </div>
       </form>

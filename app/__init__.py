@@ -37,11 +37,14 @@ def create_app(test_config=None):
     app.register_error_handler(403, error.forbidden)
     app.register_error_handler(401, error.unauthorized)
     app.register_error_handler(500, error.server_error)
+    app.register_error_handler(400, error.bad_request)
 
     @app.route('/')
     @app.route('/index')
     @login_required
     def index():
-        return render_template('index.html')
+
+
+        return render_template('/image/profile.html')
 
     return app
