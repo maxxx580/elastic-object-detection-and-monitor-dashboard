@@ -13,6 +13,13 @@ import collections
 bp = Blueprint("image", __name__)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+# derive the paths to the YOLO weights and model configuration
+weightsPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.weights")
+configPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.cfg")
+
+# load our YOLO object detector trained on COCO dataset (80 classes)
+print("[INFO] loading YOLO from disk...")
+net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
 
 @bp.route('/api/upload', methods=["POST"])
@@ -183,14 +190,6 @@ def objectDetection(file_name, image_path, username):
     np.random.seed(42)
     COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
                                dtype="uint8")
-
-    # derive the paths to the YOLO weights and model configuration
-    weightsPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.weights")
-    configPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.cfg")
-
-    # load our YOLO object detector trained on COCO dataset (80 classes)
-    print("[INFO] loading YOLO from disk...")
-    net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
     # load our input image and grab its spatial dimensions
     readImagePath = os.path.join(
