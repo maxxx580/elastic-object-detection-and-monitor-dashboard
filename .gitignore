@@ -31,3 +31,5 @@ build/
 **/*.gif
 *.png
 **/*.png
+
+app/yolo-coco/yolov3.weights

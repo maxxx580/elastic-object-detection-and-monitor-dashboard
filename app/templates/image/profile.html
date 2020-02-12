@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"-->
+<!--          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+</head>
+<style>
+    .picture-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        justify-items: center;
+        grid-gap 1em;
+    }
+
+</style>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Welcome, {{ username }}</h1>
+                <h3>Upload Image</h3>
+                <hr>
+                <form id="upload-image" action="{{url_for('image.upload_image')}}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>Select image</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" name="image" id="image" accept="image/jpeg image/png image/jpg" >
+                            <label class="custom-file-label" for="image" id="show_name">Select an image...</label>
+                            <p id="uploadErrorMessage"></p>
+                        </div>
+                    </div>
+<!--                    <button type="submit" class="btn btn-primary">Upload image</button>-->
+                    <input id="submitButton" onclick="showUploadErrorMessage" type="submit" value="upload" disabled="disabled">
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+<!--col-lg-3 col-md-4 col-xs-6 thumb -->
+    <div class="container" class="picture-grid">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+                <h1 class="page-header">Gallery</h1>
+                <h3>Click on an image to see the original image and the processed image.</h3>
+            </div>
+            <hr>
+            {% for image_name in images_names %}
+                <div class="col-lg-3 col-md-4 col-xs-6 thumb">
+<!--                <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" onclick="{{url_for('image.gallery', image_name = image_name)}}">-->
+                <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" id="{{image_name}}" onclick="getNextPage(this.id)">
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+        crossorigin="anonymous"></script>
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        function getNextPage(image_name) {
+            var uri = "/image/gallery?pass_name=" + image_name
+            window.location.replace(uri);
+        }
+        $('input[type="file"]').change(function() {
+            if ($(this).val()) {
+                 var filename = $(this).val();
+                 filename_arr =  filename.split('/')
+                 n = filename_arr.length
+                 document.getElementById("show_name").innerHTML = filename_arr[n-1];
+                 document.getElementById("submitButton").disabled=false;
+            }
+          });
+        function showUploadErrorMessage() {
+           if ( !$('input[type="file"]').val()) {
+               document.getElementById("uploadErrorMessage").innerHTML = "Please select an image first";
+           }
+        }
+    </script>
+<!--{% for image_name in images_names %}-->
+<!--<img src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" action="{{url_for('image.gallery')}}">-->
+
+<!--{% endfor %}-->
+</body>
+</html>

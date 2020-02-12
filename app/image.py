@@ -1,21 +1,20 @@
 from flask import Blueprint, flash, g, redirect, session, render_template, request, url_for
 from .user import login_required
-from cvlib.object_detection import draw_bbox
 from app.db import get_db, close_db
 from werkzeug.exceptions import abort
 from PIL import Image
 import cv2
-import cvlib as cv
 import os
 import numpy as np
 import time
+import collections
 
 bp = Blueprint("image", __name__, url_prefix='/image')
 
 @bp.route("/")
 @login_required
 def index():
-    return render_template('image/uploadImage.html')
+    return render_template('image/profile.html')
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -24,10 +23,11 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 @bp.route("/uploadImage", methods=["GET", "POST"])
 @login_required
 def upload_image():
-    target = os.path.join(APP_ROOT, 'static/uploaded_images')
     username = session.get("username")
+    target = os.path.join(APP_ROOT, 'static/uploaded_images/'+username)
     timestamp = str(int(time.time()))
     image_path = ""
+    original_name = ""
 
     try:
         assert (username != "")
@@ -37,40 +37,71 @@ def upload_image():
 
     if not os.path.isdir(target):
         os.mkdir(target)
-    for file in request.files.getlist("image"):
-        # filename should use username_timestamp
-        name_parts = file.filename.split(".")
-        try:
-            assert (len(name_parts) == 2)
-        except Exception as e:
-            print("image name has two dots in it")
-            # return render_template('error.html')
+    if request.files.getlist("image"):
+        for file in request.files.getlist("image"):
+            # filename should use username_timestamp
+            original_name = file.filename
+            name_parts = file.filename.split(".")
+            try:
+                assert (len(name_parts) == 2)
+            except Exception as e:
+                print("image name has two dots in it")
+                # return render_template('error.html')
 
-        postfix = file.filename.split(".")[1]
-        filename = username + "_" + timestamp + "." + postfix
-        image_path = "/".join([target, filename])
-        # save images to file "uploaded_images"
-        file.save(image_path)
-        # save image path to mysql
-        saveImagePath(image_path, username, timestamp, "original")
+            postfix = file.filename.split(".")[1]
+            filename = username + "_" + timestamp + "." + postfix
+            image_path = "/".join([target, filename])
+            # save images to file "uploaded_images"
+            file.save(image_path)
+            # save image path to mysql
+            saveImagePath(image_path, username, timestamp, "original")
 
-        # generate the processed image
-        processed_filename = username + "_" + timestamp + "_pro" + "." + postfix
-        processed_path = "/".join([target, processed_filename])
-        objectDetection(filename, processed_path)
-        saveImagePath(processed_path, username, timestamp, "processed")
+            # generate the processed image
+            processed_filename = username + "_" + timestamp + "_pro" + "." + postfix
+            processed_path = "/".join([target, processed_filename])
+            objectDetection(filename, processed_path)
+            saveImagePath(processed_path, username, timestamp, "processed")
 
-        # generate the thumbnail
-        im_thumb = Image.open(image_path)
-        # convert to thumbnail image
-        im_thumb.thumbnail((128, 128), Image.ANTIALIAS)
-        thumb_filename = username + "_" + timestamp + "_thumb" + "." + postfix
-        thumb_path = "/".join([target, thumb_filename])
-        im_thumb.save(thumb_path)
-        saveImagePath(thumb_path, username, timestamp, "thumbnail")
+            # generate the thumbnail
+            im_thumb = Image.open(processed_path)
+            # convert to thumbnail image
+            im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
+            thumb_filename = username + "_" + timestamp + "_thumb" + "." + postfix
+            thumb_path = "/".join([target, thumb_filename])
+            im_thumb.save(thumb_path)
+            saveImagePath(thumb_path, username, timestamp, "thumbnail")
 
-    return render_template("image/showImage.html", user_image=filename, user_image_pro=processed_filename, user_image_thumb=thumb_filename)
+    # order by timestamp
+    images_names = []
+    # create a dictionary with image_name as key and timestamp as value
+    dict_name = {}
+    username = session.get("username")
+    images_path = getFromDatabase(username, "thumbnail")
+    for image_path in images_path:
+        path_parts = image_path.split("/")
+        images_names.append(path_parts[-1])
+    for i in range(len(images_names)):
+        im_name = images_names[i].split(".")[0]
+        dict_name[im_name.split("_")[1]] = images_names[i]
+    # sort dictionary by timestamp
+    dict_name = collections.OrderedDict(sorted(dict_name.items(), reverse=True))
 
+    result = dict_name.values()
+    print(dict_name.keys())
+    print(dict_name.values())
+
+    return render_template("image/profile.html", username=username, images_names=result)
+
+@bp.route("/gallery", methods=["GET"])
+@login_required
+def gallery():
+    pass_name = request.args.get("pass_name")
+    username = session.get("username")
+    image_name_parts = pass_name.split(".")
+    filename = image_name_parts[0][:-6]+"."+image_name_parts[1]
+    processed_filename = image_name_parts[0][:-5]+"pro."+image_name_parts[1]
+
+    return render_template("image/showImage.html", username=username, user_image=filename, user_image_pro=processed_filename)
 
 def saveImagePath(location, username, currenttime, pictype):
     cnx = get_db()
@@ -79,6 +110,21 @@ def saveImagePath(location, username, currenttime, pictype):
     db_cursor.execute(query, (location, username, currenttime, pictype))
     cnx.commit()
     close_db()
+
+def getFromDatabase(username, pictype):
+    cnx = get_db()
+    db_cursor = cnx.cursor()
+    query = "SELECT location FROM Image WHERE username='"+ username +"' AND pictype='"+ pictype + "'"
+    db_cursor.execute(query)
+    result = db_cursor.fetchall()
+    lst_path = []
+    for row in result:
+        path = str(row)[2:-3]
+        print("image path: " + path)
+        lst_path.append(path)
+    cnx.commit()
+    close_db()
+    return lst_path
 
 def objectDetection(file_name, image_path):
     # load the COCO class labels our YOLO model was trained on
@@ -100,7 +146,7 @@ def objectDetection(file_name, image_path):
     net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
     # load our input image and grab its spatial dimensions
-    readImagePath = os.path.join(APP_ROOT, "static/uploaded_images/"+file_name)
+    readImagePath = os.path.join(APP_ROOT, "static/uploaded_images/"+session.get("username")+"/"+file_name)
     image = cv2.imread(readImagePath)
     (H, W) = image.shape[:2]
 
