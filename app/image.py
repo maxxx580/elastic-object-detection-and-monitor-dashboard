@@ -1,4 +1,5 @@
-from flask import Blueprint, flash, g, redirect, session, render_template, request, url_for
+import bcrypt
+from flask import Blueprint, flash, g, redirect, session, render_template, request, url_for, jsonify
 from .user import login_required
 from app.db import get_db, close_db
 from werkzeug.exceptions import abort
@@ -9,44 +10,109 @@ import numpy as np
 import time
 import collections
 
-bp = Blueprint("image", __name__, url_prefix='/image')
-
-@bp.route("/")
-@login_required
-def index():
-    return render_template('image/profile.html')
-
+bp = Blueprint("image", __name__)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-@bp.route("/uploadImage", methods=["GET", "POST"])
+@bp.route('/api/test', methods=["POST"])
+def upload():
+    print("endpoint")
+    username = request.form["username"]
+    password = request.form["password"]
+    print("endpoint1")
+    image = request.files.getlist("file")[0]
+    print("endpoint2")
+    try:
+
+        print("test")
+        print(username)
+        print(password)
+
+        assert username is not None, "invalid username"
+        assert password is not None, "invalid password"
+
+        db_cursor = get_db().cursor()
+        db_cursor.execute(
+            'select * from User where username="%s"' % (username))
+        user = db_cursor.fetchone()
+
+
+
+        assert user is not None, "invalid credential"
+        assert bcrypt.checkpw(password.encode('utf-8'),
+                              user[1].encode('utf-8')), "invalid credential"
+
+        extension = image.filename.split('.')[-1]
+
+        print(image.filename)
+        assert extension in set(
+            ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]), "Unsupported formmat "
+
+        target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
+
+        if not os.path.isdir(target):
+            os.mkdir(target)
+
+        timestamp = str(int(time.time()))
+        filename = username + "_" + timestamp + "." + extension
+        print(filename)
+
+        image_path = "/".join([target, filename])
+        # save images to file "uploaded_images"
+        image.save(image_path)
+        # save image path to mysql
+        saveImagePath(image_path, username, timestamp, "original")
+
+        # generate the processed image
+        processed_filename = username + "_" + timestamp + "_pro" + "." + extension
+        processed_path = "/".join([target, processed_filename])
+        objectDetection(filename, processed_path, username)
+        saveImagePath(processed_path, username, timestamp, "processed")
+
+        # generate the thumbnail
+        im_thumb = Image.open(processed_path)
+        # convert to thumbnail image
+        im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
+        thumb_filename = username + "_" + timestamp + "_thumb" + "." + extension
+        thumb_path = "/".join([target, thumb_filename])
+        im_thumb.save(thumb_path)
+        saveImagePath(thumb_path, username, timestamp, "thumbnail")
+
+    except AssertionError as e:
+        print(e.args)
+        return jsonify({
+            "success": False,
+            "message": e.args
+        })
+    return jsonify({"success": True})
+
+@bp.route("/api/upload", methods=["GET", "POST"])
 @login_required
 def upload_image():
     username = session.get("username")
-    target = os.path.join(APP_ROOT, 'static/uploaded_images/'+username)
+    target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
     timestamp = str(int(time.time()))
-    image_path = ""
-    original_name = ""
 
     try:
-        assert (username != "")
+        assert username != ""
     except Exception as e:
         # return render_template('error.html')
-        print("username is null")
+        abort(403)
 
     if not os.path.isdir(target):
         os.mkdir(target)
-    if request.files.getlist("image"):
-        for file in request.files.getlist("image"):
+    if request.files.getlist("file"):
+        for file in request.files.getlist("file"):
             # filename should use username_timestamp
-            original_name = file.filename
             name_parts = file.filename.split(".")
             try:
-                assert (len(name_parts) == 2)
+                assert len(name_parts) == 2
+                assert name_parts[-1].lower() in set(
+                    ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"])
             except Exception as e:
+                abort(400)
                 print("image name has two dots in it")
-                # return render_template('error.html')
 
             postfix = file.filename.split(".")[1]
             filename = username + "_" + timestamp + "." + postfix
@@ -59,7 +125,7 @@ def upload_image():
             # generate the processed image
             processed_filename = username + "_" + timestamp + "_pro" + "." + postfix
             processed_path = "/".join([target, processed_filename])
-            objectDetection(filename, processed_path)
+            objectDetection(filename, processed_path, username)
             saveImagePath(processed_path, username, timestamp, "processed")
 
             # generate the thumbnail
@@ -92,16 +158,19 @@ def upload_image():
 
     return render_template("image/profile.html", username=username, images_names=result)
 
-@bp.route("/gallery", methods=["GET"])
+
+@bp.route("/api/images", methods=["GET"])
 @login_required
 def gallery():
     pass_name = request.args.get("pass_name")
     username = session.get("username")
     image_name_parts = pass_name.split(".")
-    filename = image_name_parts[0][:-6]+"."+image_name_parts[1]
-    processed_filename = image_name_parts[0][:-5]+"pro."+image_name_parts[1]
+    filename = image_name_parts[0][:-6] + "." + image_name_parts[1]
+    processed_filename = image_name_parts[0][:-5] + "pro." + image_name_parts[1]
 
-    return render_template("image/showImage.html", username=username, user_image=filename, user_image_pro=processed_filename)
+    return render_template("image/showImage.html", username=username, user_image=filename,
+                           user_image_pro=processed_filename)
+
 
 def saveImagePath(location, username, currenttime, pictype):
     cnx = get_db()
@@ -111,10 +180,11 @@ def saveImagePath(location, username, currenttime, pictype):
     cnx.commit()
     close_db()
 
+
 def getFromDatabase(username, pictype):
     cnx = get_db()
     db_cursor = cnx.cursor()
-    query = "SELECT location FROM Image WHERE username='"+ username +"' AND pictype='"+ pictype + "'"
+    query = "SELECT location FROM Image WHERE username='" + username + "' AND pictype='" + pictype + "'"
     db_cursor.execute(query)
     result = db_cursor.fetchall()
     lst_path = []
@@ -126,7 +196,8 @@ def getFromDatabase(username, pictype):
     close_db()
     return lst_path
 
-def objectDetection(file_name, image_path):
+
+def objectDetection(file_name, image_path, username):
     # load the COCO class labels our YOLO model was trained on
     labelsPath = os.path.join(APP_ROOT, 'yolo-coco/coco.names')
     # labelsPath = os.path.sep.join(["yolo-coco", "coco.names"])
@@ -146,7 +217,7 @@ def objectDetection(file_name, image_path):
     net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
     # load our input image and grab its spatial dimensions
-    readImagePath = os.path.join(APP_ROOT, "static/uploaded_images/"+session.get("username")+"/"+file_name)
+    readImagePath = os.path.join(APP_ROOT, "static/uploaded_images/" + username + "/" + file_name)
     image = cv2.imread(readImagePath)
     (H, W) = image.shape[:2]
 
@@ -226,4 +297,3 @@ def objectDetection(file_name, image_path):
 
     # show the output image
     cv2.imwrite(image_path, image)
-
