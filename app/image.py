@@ -34,40 +34,7 @@ def upload():
         assert bcrypt.checkpw(password.encode('utf-8'),
                               user[1].encode('utf-8')), "invalid credential"
 
-        extension = image.filename.split('.')[-1]
-
-        assert extension in set(
-            ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]),\
-            "Unsupported formmat "
-
-        target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
-
-        if not os.path.isdir(target):
-            os.mkdir(target)
-
-        timestamp = str(int(time.time()))
-        filename = username + "_" + timestamp + "." + extension
-        image_path = "/".join([target, filename])
-        # save images to file "uploaded_images"
-        image.save(image_path)
-        # save image path to mysql
-        saveImagePath(image_path, username, timestamp, "original")
-
-        # generate the processed image
-        processed_filename = username + "_" + timestamp + "_pro" + "." + extension
-        processed_path = "/".join([target, processed_filename])
-        objectDetection(filename, processed_path, username)
-        saveImagePath(processed_path, username, timestamp, "processed")
-
-        # generate the thumbnail
-        im_thumb = Image.open(processed_path)
-        # convert to thumbnail image
-        im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
-        thumb_filename = username + "_" + timestamp + "_thumb" + "." + extension
-        thumb_path = "/".join([target, thumb_filename])
-        im_thumb.save(thumb_path)
-        saveImagePath(thumb_path, username, timestamp, "thumbnail")
-
+        process_images(username, image)
     except AssertionError as e:
         return jsonify({
             "success": False,
@@ -80,49 +47,18 @@ def upload():
 @login_required
 def profile():
     username = session.get("username")
-    target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
-    timestamp = str(int(time.time()))
-
     try:
         assert username != ""
     except AssertionError:
         abort(403)
 
-    if not os.path.isdir(target):
-        os.mkdir(target)
     if request.files.getlist("file"):
         for file in request.files.getlist("file"):
             # filename should use username_timestamp
-            name_parts = file.filename.split(".")
             try:
-                assert len(name_parts) == 2
-                assert name_parts[-1].lower() in set(
-                    ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"])
+                process_images(username, file)
             except AssertionError:
                 abort(400)
-
-            postfix = file.filename.split(".")[1]
-            filename = username + "_" + timestamp + "." + postfix
-            image_path = "/".join([target, filename])
-            # save images to file "uploaded_images"
-            file.save(image_path)
-            # save image path to mysql
-            saveImagePath(image_path, username, timestamp, "original")
-
-            # generate the processed image
-            processed_filename = username + "_" + timestamp + "_pro" + "." + postfix
-            processed_path = "/".join([target, processed_filename])
-            objectDetection(filename, processed_path, username)
-            saveImagePath(processed_path, username, timestamp, "processed")
-
-            # generate the thumbnail
-            im_thumb = Image.open(processed_path)
-            # convert to thumbnail image
-            im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
-            thumb_filename = username + "_" + timestamp + "_thumb" + "." + postfix
-            thumb_path = "/".join([target, thumb_filename])
-            im_thumb.save(thumb_path)
-            saveImagePath(thumb_path, username, timestamp, "thumbnail")
 
     # order by timestamp
     images_names = []
@@ -157,6 +93,42 @@ def gallery():
 
     return render_template("image/showImage.html", username=username, user_image=filename,
                            user_image_pro=processed_filename)
+
+
+def process_images(username, image):
+    extension = image.filename.split('.')[-1]
+
+    assert extension in set(
+        ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]),\
+        "Unsupported formmat "
+
+    target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
+
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
+    timestamp = str(int(time.time()))
+    filename = username + "_" + timestamp + "." + extension
+    image_path = "/".join([target, filename])
+    # save images to file "uploaded_images"
+    image.save(image_path)
+    # save image path to mysql
+    saveImagePath(image_path, username, timestamp, "original")
+
+    # generate the processed image
+    processed_filename = username + "_" + timestamp + "_pro" + "." + extension
+    processed_path = "/".join([target, processed_filename])
+    objectDetection(filename, processed_path, username)
+    saveImagePath(processed_path, username, timestamp, "processed")
+
+    # generate the thumbnail
+    im_thumb = Image.open(processed_path)
+    # convert to thumbnail image
+    im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
+    thumb_filename = username + "_" + timestamp + "_thumb" + "." + extension
+    thumb_path = "/".join([target, thumb_filename])
+    im_thumb.save(thumb_path)
+    saveImagePath(thumb_path, username, timestamp, "thumbnail")
 
 
 def saveImagePath(location, username, currenttime, pictype):
