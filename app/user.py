@@ -100,6 +100,13 @@ def register():
 
 @bp.route('/api/login', methods=['GET', 'POST'])
 def login():
+    """[this api is used to authenticate user. It retrieves HTML login view with HTTP GET. 
+    it authencate user's credential with HTTP POST]
+
+    Returns:
+        [HTML] -- [this endpoint returns html profile view upon successful authentication, 
+        otherwise login view with error message]
+    """
     logger = logging.getLogger()
     if request.method == 'GET':
         return render_template('user/login.html')
@@ -126,7 +133,7 @@ def login():
 
         session['username'] = username
 
-        return redirect(url_for('image.upload_image'))
+        return redirect(url_for('image.profile'))
 
     except AssertionError as e:
         flash(e)

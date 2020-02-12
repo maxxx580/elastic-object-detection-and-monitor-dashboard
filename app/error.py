@@ -1,7 +1,8 @@
+from werkzeug.exceptions import HTTPException
+from flask import json
 from flask import render_template, request, Flask
 app = Flask(__name__)
-from flask import json
-from werkzeug.exceptions import HTTPException
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -18,13 +19,16 @@ def page_not_found(e):
     return response
     # return render_template('error.html'), 404
 
+
 @app.errorhandler(403)
 def forbidden(e):
-    return render_template('error.html'), 403
+    return render_template('error.html', message=e.description), 403
+
 
 @app.errorhandler(401)
 def unauthorized(e):
-    return render_template('error.html'), 401
+    return render_template('error.html', message=e.description), 401
+
 
 @app.errorhandler(500)
 def server_error(e):
@@ -38,6 +42,7 @@ def server_error(e):
     response.content_type = "application/json"
     return response
 
+
 @app.errorhandler(400)
 def bad_request(e):
-    return render_template('error.html'), 400
+    return render_template('error.html', message=e.description), 400
