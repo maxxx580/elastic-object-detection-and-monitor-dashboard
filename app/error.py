@@ -38,3 +38,6 @@ def server_error(e):
     response.content_type = "application/json"
     return response
 
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template('error.html'), 400

@@ -32,5 +32,9 @@ build/
 *.png
 **/*.png
 
+
+app/yolo-coco/yolov3.weights
+
 start.sh
 app/db.py
+
