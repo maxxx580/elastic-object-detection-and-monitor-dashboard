@@ -23,18 +23,16 @@ build/
 **/.DS_Store
 **/._.DS_Store
 
-*.jpe
-**/*.jpg
-*.jpee
-**/*.jpeg
-*.gif
-**/*.gif
-*.png
-**/*.png
+app/static/uploaded_images/*.jpg
+app/static/uploaded_images/**/*.jpg
+app/static/uploaded_images/*.jpeg
+app/static/uploaded_images/**/*.jpeg
+app/static/uploaded_images/*.gif
+app/static/uploaded_images/**/*.gif
+app/static/uploaded_images/*.png
+app/static/uploaded_images/**/*.png
 
 
 app/yolo-coco/yolov3.weights
 
-start.sh
-app/db.py
 
