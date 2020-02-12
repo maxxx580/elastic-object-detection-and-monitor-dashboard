@@ -17,6 +17,11 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 @bp.route('/api/upload', methods=["POST"])
 def upload():
+    """[this endpoint authenticate user's credential and uploads one image for authenticated one with HTTP POST] 
+
+    Returns:
+        [JSON] -- [this endpoints return a json object indecates if upload succeeds ]
+    """
     username = request.form["username"]
     password = request.form["password"]
     image = request.files.getlist("file")[0]
@@ -46,6 +51,12 @@ def upload():
 @bp.route("/api/profile", methods=["GET", "POST"])
 @login_required
 def profile():
+    """[this endpoint is secured for authenticated users. it uploads one image with HTTP POST,
+    and returns updated profile view in HTML. This endpoint retrieves current profile view HTML with HTTP GET]
+
+    Returns:
+        [HTML] -- [this endpoint returns hmtl for profile view upon successful uploading, otherwise error view]
+    """
     username = session.get("username")
     try:
         assert username != ""
@@ -64,7 +75,6 @@ def profile():
     images_names = []
     # create a dictionary with image_name as key and timestamp as value
     dict_name = {}
-    username = session.get("username")
     images_path = getFromDatabase(username, "thumbnail")
     for image_path in images_path:
         path_parts = image_path.split("/")
@@ -83,7 +93,13 @@ def profile():
 
 @bp.route("/api/images", methods=["GET"])
 @login_required
-def gallery():
+def images():
+    """[this endopiont is secured for authenticated users and only takes HTTP GET. It retrieves an HTML view including 
+    the original images and the processed image]
+
+    Returns:
+        [HTML] -- [a HTML view contains both the original image and the processed one.]
+    """
     pass_name = request.args.get("pass_name")
     username = session.get("username")
     image_name_parts = pass_name.split(".")
