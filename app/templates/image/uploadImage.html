@@ -16,8 +16,8 @@
                     <div class="form-group">
                         <label>Select image</label>
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" name="image" id="image" accept="image/*" >
-                            <label class="custom-file-label" for="image">Select an image...</label>
+                            <input type="file" class="custom-file-input" name="image" id="image" accept="image/png, image/jpeg, imapge/jpg" >
+                            <label class="custom-file-label" for="image" id="show_name">Select an image...</label>
                         </div>
                     </div>
 <!--                    <button type="submit" class="btn btn-primary">Upload image</button>-->
@@ -40,8 +40,6 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-  <title>ECE1779 A1 Login</title>
 </head>
 <body>
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
@@ -62,6 +60,16 @@
     display: inline-block;
     border: 1px solid #ccc;
     box-sizing: border-box;
+  }
+
+  input[type="file"] {
+    z-index: -1;
+    position: absolute;
+    opacity: 0;
+  }
+
+  input:focus + label {
+    outline: 2px solid;
   }
 
   /* Set a style for all buttons */
