@@ -7,6 +7,7 @@ from . import db, image, user
 from .user import login_required
 from app import error
 
+
 def create_app(test_config=None):
 
     # create and configure the app
@@ -43,8 +44,6 @@ def create_app(test_config=None):
     @app.route('/index')
     @login_required
     def index():
-
-
         return render_template('/image/profile.html')
 
     return app

@@ -9,24 +9,15 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 </head>
-<style>
-    .picture-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        justify-items: center;
-        grid-gap 1em;
-    }
-
-</style>
-
 <body>
     <div class="container">
         <div class="row">
             <div class="col">
                 <h1>Welcome, {{ username }}</h1>
+                <a href="{{ url_for('user.logout')}}" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Log out</a>
                 <h3>Upload Image</h3>
                 <hr>
-                <form id="upload-image" action="{{url_for('image.upload_image')}}" method="POST" enctype="multipart/form-data">
+                <form id="upload-image" action="{{url_for('image.profile')}}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label>Select image</label>
                         <div class="custom-file">
@@ -44,7 +35,7 @@
         </div>
     </div>
 <!--col-lg-3 col-md-4 col-xs-6 thumb -->
-    <div class="container" class="picture-grid">
+    <div class="container">
 
         <div class="row">
 

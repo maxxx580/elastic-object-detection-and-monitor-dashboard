@@ -15,19 +15,12 @@ bp = Blueprint("image", __name__)
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-@bp.route('/api/test', methods=["POST"])
+@bp.route('/api/upload', methods=["POST"])
 def upload():
-    print("endpoint")
     username = request.form["username"]
     password = request.form["password"]
-    print("endpoint1")
     image = request.files.getlist("file")[0]
-    print("endpoint2")
     try:
-
-        print("test")
-        print(username)
-        print(password)
 
         assert username is not None, "invalid username"
         assert password is not None, "invalid password"
@@ -37,17 +30,15 @@ def upload():
             'select * from User where username="%s"' % (username))
         user = db_cursor.fetchone()
 
-
-
         assert user is not None, "invalid credential"
         assert bcrypt.checkpw(password.encode('utf-8'),
                               user[1].encode('utf-8')), "invalid credential"
 
         extension = image.filename.split('.')[-1]
 
-        print(image.filename)
         assert extension in set(
-            ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]), "Unsupported formmat "
+            ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]),\
+            "Unsupported formmat "
 
         target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
 
@@ -56,8 +47,6 @@ def upload():
 
         timestamp = str(int(time.time()))
         filename = username + "_" + timestamp + "." + extension
-        print(filename)
-
         image_path = "/".join([target, filename])
         # save images to file "uploaded_images"
         image.save(image_path)
@@ -80,24 +69,23 @@ def upload():
         saveImagePath(thumb_path, username, timestamp, "thumbnail")
 
     except AssertionError as e:
-        print(e.args)
         return jsonify({
             "success": False,
             "message": e.args
         })
     return jsonify({"success": True})
 
-@bp.route("/api/upload", methods=["GET", "POST"])
+
+@bp.route("/api/profile", methods=["GET", "POST"])
 @login_required
-def upload_image():
+def profile():
     username = session.get("username")
     target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
     timestamp = str(int(time.time()))
 
     try:
         assert username != ""
-    except Exception as e:
-        # return render_template('error.html')
+    except AssertionError:
         abort(403)
 
     if not os.path.isdir(target):
@@ -110,9 +98,8 @@ def upload_image():
                 assert len(name_parts) == 2
                 assert name_parts[-1].lower() in set(
                     ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"])
-            except Exception as e:
+            except AssertionError:
                 abort(400)
-                print("image name has two dots in it")
 
             postfix = file.filename.split(".")[1]
             filename = username + "_" + timestamp + "." + postfix
@@ -150,11 +137,10 @@ def upload_image():
         im_name = images_names[i].split(".")[0]
         dict_name[im_name.split("_")[1]] = images_names[i]
     # sort dictionary by timestamp
-    dict_name = collections.OrderedDict(sorted(dict_name.items(), reverse=True))
+    dict_name = collections.OrderedDict(
+        sorted(dict_name.items(), reverse=True))
 
     result = dict_name.values()
-    print(dict_name.keys())
-    print(dict_name.values())
 
     return render_template("image/profile.html", username=username, images_names=result)
 
@@ -166,7 +152,8 @@ def gallery():
     username = session.get("username")
     image_name_parts = pass_name.split(".")
     filename = image_name_parts[0][:-6] + "." + image_name_parts[1]
-    processed_filename = image_name_parts[0][:-5] + "pro." + image_name_parts[1]
+    processed_filename = image_name_parts[0][:-
+                                             5] + "pro." + image_name_parts[1]
 
     return render_template("image/showImage.html", username=username, user_image=filename,
                            user_image_pro=processed_filename)
@@ -184,7 +171,8 @@ def saveImagePath(location, username, currenttime, pictype):
 def getFromDatabase(username, pictype):
     cnx = get_db()
     db_cursor = cnx.cursor()
-    query = "SELECT location FROM Image WHERE username='" + username + "' AND pictype='" + pictype + "'"
+    query = "SELECT location FROM Image WHERE username='" + \
+        username + "' AND pictype='" + pictype + "'"
     db_cursor.execute(query)
     result = db_cursor.fetchall()
     lst_path = []
@@ -217,7 +205,8 @@ def objectDetection(file_name, image_path, username):
     net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
 
     # load our input image and grab its spatial dimensions
-    readImagePath = os.path.join(APP_ROOT, "static/uploaded_images/" + username + "/" + file_name)
+    readImagePath = os.path.join(
+        APP_ROOT, "static/uploaded_images/" + username + "/" + file_name)
     image = cv2.imread(readImagePath)
     (H, W) = image.shape[:2]
 

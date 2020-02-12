@@ -126,7 +126,7 @@ def login():
 
         session['username'] = username
 
-        return redirect(url_for('image.upload_image'))
+        return redirect(url_for('image.profile'))
 
     except AssertionError as e:
         flash(e)
