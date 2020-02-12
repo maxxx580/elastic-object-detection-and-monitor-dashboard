@@ -46,7 +46,7 @@
             <hr>
             {% for image_name in images_names %}
                 <div class="col-lg-3 col-md-4 col-xs-6 thumb">
-<!--                <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" onclick="{{url_for('image.gallery', image_name = image_name)}}">-->
+'<!--                <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" onclick="{{url_for('image.images', image_name = image_name)}}">-->
                 <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" id="{{image_name}}" onclick="getNextPage(this.id)">
                 </div>
             {% endfor %}
@@ -80,7 +80,7 @@
         }
     </script>
 <!--{% for image_name in images_names %}-->
-<!--<img src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" action="{{url_for('image.gallery')}}">-->
+<!--<img src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" action="{{url_for('image.images')}}">-->
 
 <!--{% endfor %}-->
 </body>
