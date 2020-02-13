@@ -5,9 +5,13 @@ import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
                    request, session, url_for, abort)
 
-from werkzeug.exceptions import abort
 
-from app.db import close_db, get_db
+from werkzeug.exceptions import abort
+import app
+
+
+from sqlalchemy import update
+from flask_sqlalchemy import SQLAlchemy
 
 bp = Blueprint("user", __name__)
 
@@ -23,7 +27,6 @@ def login_required(view):
             return redirect(url_for("user.login"))
         logger.info('user already logged in')
         return view(**kwargs)
-
     return wrapped_view
 
 
@@ -63,27 +66,24 @@ def register():
         assert re.match(result_password, password)
         "Password should have 6 to 18 characters"
 
-        assert len(password) >= 6, "Password should be longer than 6 characters"
-        assert 2 <= len(
-            username) <= 100, "Username should have 2~100 characters"
-
         password = password.encode('utf-8')
+        # cnx = get_db()
+        # db_cursor = cnx.cursor()
+        #
+        # db_cursor.execute(
+        #     'select * from User where username="%s"' % (username))
+        # user = db_cursor.fetchone()
 
-        cnx = get_db()
-        db_cursor = cnx.cursor()
-
-        db_cursor.execute(
-            'select * from User where username="%s"' % (username))
-        user = db_cursor.fetchone()
+        user = app.UserModel.query.filter_by(username=username).first()
         assert user is None, "Username exists"
 
         salt = bcrypt.gensalt()
 
         pw_hashed = bcrypt.hashpw(password, salt)
-        query = 'INSERT INTO User (username, password) VALUES (%s,%s)'
-        db_cursor.execute(query, (username, pw_hashed))
 
-        cnx.commit()
+        new_user = app.UserModel(username = username, password = pw_hashed)
+        app.db.session.add(new_user)
+        app.db.session.commit()
 
         return redirect(url_for("user.login"))
 
@@ -98,7 +98,8 @@ def register():
         return render_template('user/register.html', e=e)
 
     finally:
-        close_db()
+
+        pass
 
 
 @bp.route('/api/login', methods=['GET', 'POST'])
@@ -138,7 +139,7 @@ def login():
         logger.error(e)
         return render_template('user/login.html')
     finally:
-        close_db()
+        pass
 
 
 @bp.route("/api/logout")
@@ -154,11 +155,15 @@ def authenticate(username, password):
     assert username is not None, "invalid username"
     assert password is not None, "invalid password"
 
-    db_cursor = get_db().cursor()
-    db_cursor.execute(
-        'select * from User where username="%s"' % (username))
-    user = db_cursor.fetchone()
+    # db_cursor = get_db().cursor()
+    # db_cursor.execute(
+    #     'select * from User where username="%s"' % (username))
+    # user = db_cursor.fetchone()
+
+    user = app.UserModel.query.filter_by(
+        username=username).first()
 
     assert user is not None, "invalid credential"
     assert bcrypt.checkpw(password.encode('utf-8'),
-                          user[1].encode('utf-8')), "invalid credential"
+                   user.password), "invalid credential"
+
