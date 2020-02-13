@@ -1,6 +1,6 @@
 import bcrypt
 from flask import Blueprint, flash, g, redirect, session, render_template, request, url_for, jsonify
-from .user import login_required
+from .user import login_required, authenticate
 from app.db import get_db, close_db
 from werkzeug.exceptions import abort
 from PIL import Image
@@ -9,6 +9,7 @@ import os
 import numpy as np
 import time
 import collections
+import logging
 
 bp = Blueprint("image", __name__)
 
@@ -17,9 +18,12 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 weightsPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.weights")
 configPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.cfg")
 
+
 # load our YOLO object detector trained on COCO dataset (80 classes)
 print("[INFO] loading YOLO from disk...")
 net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
+ln = net.getLayerNames()
+ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 
 @bp.route('/api/upload', methods=["POST"])
@@ -29,30 +33,26 @@ def upload():
     Returns:
         [JSON] -- [this endpoints return a json object indecates if upload succeeds ]
     """
+    logger = logging.getLogger()
     username = request.form["username"]
     password = request.form["password"]
     image = request.files.getlist("file")[0]
     try:
 
-        assert username is not None, "invalid username"
-        assert password is not None, "invalid password"
-
-        db_cursor = get_db().cursor()
-        db_cursor.execute(
-            'select * from User where username="%s"' % (username))
-        user = db_cursor.fetchone()
-
-        assert user is not None, "invalid credential"
-        assert bcrypt.checkpw(password.encode('utf-8'),
-                              user[1].encode('utf-8')), "invalid credential"
-
+        authenticate(username, password)
         process_images(username, image)
+
+        return jsonify({"success": True})
+
     except AssertionError as e:
         return jsonify({
             "success": False,
             "message": e.args
         })
-    return jsonify({"success": True})
+    except Exception:
+        abort(500)
+    finally:
+        close_db()
 
 
 @bp.route("/api/profile", methods=["GET", "POST"])
@@ -198,9 +198,6 @@ def objectDetection(file_name, image_path, username):
     (H, W) = image.shape[:2]
 
     # determine only the *output* layer names that we need from YOLO
-    ln = net.getLayerNames()
-    ln = [ln[i[0] - 1] for i in net.getUnconnectedOutLayers()]
-
     # construct a blob from the input image and then perform a forward
     # pass of the YOLO object detector, giving us our bounding boxes and
     # associated probabilities
