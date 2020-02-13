@@ -32,13 +32,21 @@ Gunicorn 20.0.4
 ## Web interface
 
 ### Authentication view
-Users are required to be authenticated before being allowed to upload images. Unauthenticated accesses are redirected to log in page. 
 
+![Log in page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.37&#32;PM.png)  
+Users are required to be authenticated before being allowed to upload images. Unauthenticated accesses are redirected to log in page. 
+![Registration page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.19&#32;PM.png)  
 User should provided an username during registration, which should be uniquely identifiable. Users are required to provide a password of at least 6 characters. Validation on both username and password are performed on server end. User will be redirected to login page upon successful registration. 
 
 
 ### Profile view
-Users are redirected to profile upon successful login. The profile view contains an image uploads form and a gallery of thumbnails of uploaded images. Users can select an image file and click on upload button to add a new image. In the gallery section, only images uploaded by the user should be visible, and by clicking on the thumbnails, the user will be redirected to a page with the original image and processed one. 
+![profile page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.15&#32;PM.png)  
+Users are redirected to profile upon successful login. The profile view contains an image uploads form and a gallery of thumbnails of uploaded images. Users can select an image file and click on upload button to add a new image. In the gallery section, only images uploaded by the user should be visible. 
+
+### Image view
+
+![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.56&#32;PM.png)  
+By clicking on the thumbnails, the user will be redirected to the image page with the original image and processed one. The top one is the original image user uploaded and the bottom one is processed by object detection modules. 
 
 ## API Interface
 
@@ -62,7 +70,7 @@ This application exposes two endpoints below for testing purposes.
     * username - string
     * password - string
     * file - file
-  * response
+  * response - JSON
     ~~~
     {
       success: true
@@ -74,9 +82,9 @@ This application exposes two endpoints below for testing purposes.
     }
     ~~~
 
-
-## Application Architectures
-[![2331581530664.jpg](https://i.postimg.cc/nzJyF6X2/2331581530664.jpg)](https://postimg.cc/zLxtp2SH)   
+## System Architectures
+Two database table are used in this application. the user table is meant to store users' credential information. The image table stores records of images uploaded and it has a foreign key connecting to the user table. 
+![DB ER](documentation/figures/2331581530664_.jpg)    
 
 
 
@@ -90,5 +98,4 @@ This application exposes two endpoints below for testing purposes.
 ## Assumption
 * Image Format: this application only accept format accepted by open cv framework. The format should be explictly identified as file extension. 
 * Image Size: the expected image size is less than 3MB. Larger image will results in degrading performance. 
-* TPS Limit: the single host is expected to process 1 transaction per second. 
   
