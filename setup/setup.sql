@@ -17,14 +17,11 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 CREATE SCHEMA IF NOT EXISTS `ece1779_a1` DEFAULT CHARACTER SET utf8 ;
 USE `ece1779_a1` ;
 
-DROP TABLE IF EXISTS Image;
-DROP TABLE IF EXISTS User;
-
 -- -----------------------------------------------------
 -- Table `ece1779_a1`.`User`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ece1779_a1`.`User` (
-  `username` VARCHAR(45) NOT NULL,
+  `username` VARCHAR(100) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
@@ -36,7 +33,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ece1779_a1`.`Image` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `location` VARCHAR(200) NOT NULL,
-  `username` VARCHAR(45) NOT NULL,
+  `username` VARCHAR(100) NOT NULL,
   `currenttime` VARCHAR(45) NOT NULL,
   `pictype` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
