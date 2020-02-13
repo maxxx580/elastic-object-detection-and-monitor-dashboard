@@ -1,5 +1,5 @@
 #!/bin/sh
-mysql -u root "-ppassword" < setup/setup.sql
+mysql -u root "-pece1779pass" < setup/setup.sql
 mkdir -p app/static
 mkdir -p app/static/uploaded_images
 {
@@ -10,5 +10,5 @@ mkdir -p app/static/uploaded_images
     fi
 }
 . venv/bin/activate
-pip3 install .
-gunicorn -w 3 -b 127.0.0.1:5000 wsgi:webapp --timeout 90 --graceful-timeout 60
+pip3 install -r setup/requirements.txt
+gunicorn -w 1 -b 127.0.0.1:5000 wsgi:webapp --timeout 90 --graceful-timeout 60
