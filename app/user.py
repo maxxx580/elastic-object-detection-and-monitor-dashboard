@@ -1,6 +1,6 @@
 import functools
 import logging
-
+import re
 import bcrypt
 from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
                    request, session, url_for, abort)
@@ -48,23 +48,26 @@ def register():
         return render_template('user/register.html')
 
     username = request.form['username']
-    password = request.form['password'].encode('utf-8')
+    password = request.form['password']
 
     try:
 
         assert username is not None, "Please enter username"
         assert password is not None, "Please enter password"
 
-        # result_name = re.compile(r"[\u4e00-\u9fa5]")
-        # result_password = re.compile(r"^[a-zA-Z]\w{6,18}")
-        #
-        #
-        # assert result_name.match(username), "Please check the format of username"
-        # assert result_password.match(password),"Password should have 6 to 18 characters"
+        result_name = r'^[A-Za-z0-9._-]{2,100}$'
+        result_password = r'^.{6,}$'
+
+        assert re.match(result_name, username, re.M | re.I), \
+            "Username should have 2 to 100 characters, and only contains letter, number, underline and dash."
+        assert re.match(result_password, password), \
+            "Password should have 6 to 18 characters"
 
         assert len(password) >= 6, "Password should be longer than 6 characters"
         assert 2 <= len(
             username) <= 100, "Username should have 2~100 characters"
+
+        password = password.encode('utf-8')
 
         cnx = get_db()
         db_cursor = cnx.cursor()

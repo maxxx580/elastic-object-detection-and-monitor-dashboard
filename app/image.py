@@ -120,7 +120,6 @@ def images():
 
 def process_images(username, image):
     extension = image.filename.split('.')[-1]
-
     assert extension in set(
         ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]),\
         "Unsupported formmat "
