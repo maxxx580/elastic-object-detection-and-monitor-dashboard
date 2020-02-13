@@ -35,4 +35,4 @@ app/static/uploaded_images/**/*.png
 
 app/yolo-coco/yolov3.weights
 
-
+cookie
