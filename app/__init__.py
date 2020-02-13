@@ -42,6 +42,7 @@ def create_app(test_config=None):
 
     @app.route('/')
     @app.route('/index')
+    @app.route('/api')
     @login_required
     def index():
         return render_template('/image/profile.html')

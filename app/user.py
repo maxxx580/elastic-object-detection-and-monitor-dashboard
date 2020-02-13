@@ -116,17 +116,7 @@ def login():
 
     try:
 
-        assert username is not None, "invalid username"
-        assert password is not None, "invalid password"
-
-        db_cursor = get_db().cursor()
-        db_cursor.execute(
-            'select * from User where username="%s"' % (username))
-        user = db_cursor.fetchone()
-
-        assert user is not None, "invalid credential"
-        assert bcrypt.checkpw(password.encode('utf-8'),
-                              user[1].encode('utf-8')), "invalid credential"
+        authenticate(username, password)
 
         session.clear()
         session.permanent = True
@@ -154,3 +144,18 @@ def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
     return redirect(url_for("user.login"))
+
+
+def authenticate(username, password):
+
+    assert username is not None, "invalid username"
+    assert password is not None, "invalid password"
+
+    db_cursor = get_db().cursor()
+    db_cursor.execute(
+        'select * from User where username="%s"' % (username))
+    user = db_cursor.fetchone()
+
+    assert user is not None, "invalid credential"
+    assert bcrypt.checkpw(password.encode('utf-8'),
+                          user[1].encode('utf-8')), "invalid credential"
