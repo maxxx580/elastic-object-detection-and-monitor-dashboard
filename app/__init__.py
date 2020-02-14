@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, current_app, render_template, abort
+from flask import Flask, current_app, render_template, abort, url_for, redirect
 
 from . import db, image, user
 from .user import login_required
@@ -45,6 +45,6 @@ def create_app(test_config=None):
     @app.route('/api')
     @login_required
     def index():
-        return render_template('/image/profile.html')
+        return redirect(url_for('image.profile'))
 
     return app
