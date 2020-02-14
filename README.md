@@ -1,9 +1,9 @@
 # ece1779-a1
 
 ## Overview
-This project is a python-based web application that allow users to upload images to server and performs object detection on the image. This application is deployed by gunicorn on a single EC2 host and set to run on port 5000. 
+This project is a python-based web application that allows users to upload images and get the processed ones with  objects detected. The application is deployed by gunicorn on a single EC2 host and is set to run on port 5000. 
 
-## Group
+## Group members
 * Hongyu Liu 1005851295   
 * Ran Wang 1006126951   
 * Zixiang Ma 1005597285  
@@ -11,13 +11,17 @@ This project is a python-based web application that allow users to upload images
 ## Quick Start
 
 ### Access to AWS EC2 instance
+use the command below to access EC2 instance. The project is placed at root directory and please use the start up script to launch. 
+```
+ssh -i "keypair.pem" ubuntu@ec2-54-159-34-94.compute-1.amazonaws.com
+```
 
 ### Start Server
-To start the server on local host for dev purposes, execute the command below at project root directory
+To start the server on local host for development purposes, execute the command below at project root directory.
 ```
-bash run.sh
+bash start.sh
 ```
-To start the deployed server on EC2, executa the start up scritp at Desktop directory with command below. 
+To start the deployed server on EC2, execute the start up script at Desktop directory with command below. 
 ```
 ~/Desktop/$ bash start.sh
 ```
@@ -25,50 +29,48 @@ To start the deployed server on EC2, executa the start up scritp at Desktop dire
 ## Major Dependencies
 ```
 Python 3.7
-Flaks 1.1.1
+Flask 1.1.1
 Gunicorn 20.0.4
 ``` 
 
 ## Web interface
 
 ### Authentication view
-
+Users are required to be authenticated before uploading images. Unauthenticated accesses will be redirected to the login page. 
 ![Log in page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.37&#32;PM.png)  
-Users are required to be authenticated before being allowed to upload images. Unauthenticated accesses are redirected to log in page. 
-![Registration page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.19&#32;PM.png)  
-User should provided an username during registration, which should be uniquely identifiable. Users are required to provide a password of at least 6 characters. Validation on both username and password are performed on server end. User will be redirected to login page upon successful registration. 
 
+During registration, users should provide a unique username and a password. Username should have 2 to 100 characters, and contains only letters, numbers, dash and underscore. Password should have 6 or more characters. Validation of username and password is performed on server end. Users will be redirected to the login page upon successful registration. 
+![Registration page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.19&#32;PM.png)  
 
 ### Profile view
+Users will be redirected to profile upon successful login. The profile view contains an image upload form and a gallery of thumbnails of the processed images. Users can select an image file and click on the upload button to add a new image to the profile. In the gallery section, users can only view the images uploaded by themselves.
 ![profile page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.15&#32;PM.png)  
-Users are redirected to profile upon successful login. The profile view contains an image uploads form and a gallery of thumbnails of uploaded images. Users can select an image file and click on upload button to add a new image. In the gallery section, only images uploaded by the user should be visible. 
 
 ### Image view
-
+By clicking on the thumbnails, users will be redirected to the image page that shows the original image and the image processed by the object detection modules. 
 ![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.56&#32;PM.png)  
-By clicking on the thumbnails, the user will be redirected to the image page with the original image and processed one. The top one is the original image user uploaded and the bottom one is processed by object detection modules. 
 
 ## API Interface
 
 This application exposes two endpoints below for testing purposes.   
   ### Registration
-  this endpoint accepts HTTP POST requests to register a user. In this requst, there should be a string parameter named username and password. This endpoint will returns login HTML view with code 201 upon successful registration. 
+  This endpoint accepts HTTP POST requests to register a user. There are two string parameters in this request: username and password. The endpoint will return a login HTML view with code 201 upon successful registration. If the parameters are not in the requested format, a flash message will ask users to change username and password format, code 200 will be returned.
 
   * Request URL: http://host/api/register    
   * HTTP method: POST    
   * Request parameters  
-    * username - string 
-    * password - string
-  * Success Respose: HTML login view with status code 201
+    * username - String 
+    * password - String
+  * Success Response: HTML login view with status code 201
 
   ### Image
   
-  this endpoint accepts HTTP POST requests to add image to user's gallery. This request should include a string parameter named username, a string parameter named password, a file parameter named file. The enctype property of this request should be set to multipart/form-data.    
+  This endpoint accepts HTTP POST requests to add an image to user's gallery. This request should include two string parameters: username and password; and a file parameter: file. The enctype property of this request should be set to multipart/form-data.
   * Request URL: http://host/api/upload
   * HTTP method: POST
   * Request parameters
-    * username - string
-    * password - string
+    * username - String
+    * password - String
     * file - file
   * response - JSON
     ~~~
@@ -83,10 +85,11 @@ This application exposes two endpoints below for testing purposes.
     ~~~
 
 ## System Architectures
-Two database table are used in this application. the user table is meant to store users' credential information. The image table stores records of images uploaded and it has a foreign key connecting to the user table. 
-![DB ER](documentation/figures/2331581530664_.jpg)    
+The web pages act as the client and send requests to and gets responses from the server deployed on an instance of AWS EC2. The gunicorn application server is set up to launch the flask web application at port 5000. The flask web application communicates with the database at port 3306.
+![DB ER](documentation/figures/diagram.png) 
 
-
+There are two tables in the database. The user table takes username as the primary key and it stores users' credential information. The password stored is the hash of the original password concatenated with a per-user salt value. The image table has an id incremented automatically and a foreign key referenced from the username in the user table. The image table also contains some image information, like the storage location of the image, the timestamp and the type of the image(i.e. original, processed or thumbnail). This database follows the 3NF.
+![DB ER](documentation/figures/diagram.png)    
 
 ## Error Handling
 
@@ -95,7 +98,7 @@ Two database table are used in this application. the user table is meant to stor
 * 401 Unauthorized 
 * 400 Bad Request
 
-## Assumption
-* Image Format: this application only accept format accepted by open cv framework. The format should be explictly identified as file extension. 
-* Image Size: the expected image size is less than 3MB. Larger image will results in degrading performance. 
+## Assumptions
+* Image Format: this application only accept format accepted by open cv framework, including bmp, pbm, pgm, ppm, sr, ras, jpeg, jpg, jpe, jp2, tiff, tif, png. The format should be explicitly identified as file extension. 
+
   
