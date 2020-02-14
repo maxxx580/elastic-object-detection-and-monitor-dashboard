@@ -14,9 +14,7 @@ def load_requirements(fname):
 
 setup(
     name='ece1779-a1',
-    version='0.9.9',
-    packages=find_packages(),
-    include_package_data=True,
+    version='1.0.0',
     zip_safe=False,
     install_requires=load_requirements('setup/requirements.txt')
 )

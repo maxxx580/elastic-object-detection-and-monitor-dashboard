@@ -17,13 +17,10 @@ ssh -i "keypair.pem" ubuntu@ec2-54-159-34-94.compute-1.amazonaws.com
 ```
 
 ### Start Server
-To start the server on local host for development purposes, execute the command below at project root directory.
-```
-bash start.sh
-```
+
 To start the deployed server on EC2, execute the start up script at Desktop directory with command below. 
 ```
-~/Desktop/$ bash start.sh
+~/Desktop/$ sudo bash start.sh
 ```
 
 ## Major Dependencies
@@ -48,7 +45,7 @@ Users will be redirected to profile upon successful login. The profile view cont
 
 ### Image view
 By clicking on the thumbnails, users will be redirected to the image page that shows the original image and the image processed by the object detection modules. 
-![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.56&#32;PM.png)  
+![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-14&#32;at&#32;12.21.43&#32;AM.png)  
 
 ## API Interface
 
@@ -89,7 +86,7 @@ The web pages act as the client and send requests to and gets responses from the
 ![DB ER](documentation/figures/diagram.png) 
 
 There are two tables in the database. The user table takes username as the primary key and it stores users' credential information. The password stored is the hash of the original password concatenated with a per-user salt value. The image table has an id incremented automatically and a foreign key referenced from the username in the user table. The image table also contains some image information, like the storage location of the image, the timestamp and the type of the image(i.e. original, processed or thumbnail). This database follows the 3NF.
-![DB ER](documentation/figures/diagram.png)    
+![DBER](documentation/figures/DBER.jpg)    
 
 ## Error Handling
 
