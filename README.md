@@ -1,7 +1,7 @@
 # ece1779-a1
 
 ## Overview
-This project is a python-based web application that allows users to upload images and get the processed ones with  objects detected. The application is deployed by gunicorn on a single EC2 host and is set to run on port 5000. 
+This project is a python-based web application that allows users to upload images and get the processed ones with objects detected. The application is deployed by gunicorn on a single EC2 and is set to run on port 5000. (http://54.159.34.94:5000)
 
 ## Group members
 * Hongyu Liu 1005851295   
