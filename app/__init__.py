@@ -1,11 +1,11 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, current_app, render_template, abort, url_for, redirect
+from flask import Flask, url_for, redirect
 
+from app import error
 from . import db, image, user
 from .user import login_required
-from app import error
 
 
 def create_app(test_config=None):
