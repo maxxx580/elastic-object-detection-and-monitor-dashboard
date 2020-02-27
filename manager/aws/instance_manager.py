@@ -2,6 +2,7 @@ import boto3
 import time
 
 from datetime import datetime, timedelta
+from operator import itemgetter
 
 
 class InstanceManager:
@@ -55,18 +56,9 @@ class InstanceManager:
         response = self.ec2.describe_instances()
         return response['Reservations']
 
-    def deploy_instance(self, instance_id):
-
+    def deploy_instance(self, instance_ids):
         # TODO: use aws code deploy
-        response = self.ssm.send_command(InstanceIds=[instance_id], DocumentName='AWS-RunShellScript',
-                                         Parameters={'commands': ["echo hello"]})
-        command_id = response['Command']['CommandId']
-        time.sleep(5)
-        output = self.ssm.get_command_invocation(
-            CommandId=command_id,
-            InstanceId=instance_id)
-
-        return output
+        pass
 
     def get_cup_utilization(self, instance_ids):
         response = self.cw.get_metric_statistics(
@@ -74,19 +66,46 @@ class InstanceManager:
             MetricName='CPUUtilization',
             Dimensions=[{'Name': 'InstanceId', 'Value': instance_id}
                         for instance_id in instance_ids],
-            StartTime=datetime(2018, 4, 23) - timedelta(seconds=600),
-            EndTime=datetime(2018, 4, 24),
-            Period=86400,
+            StartTime=datetime.utcnow() - timedelta(seconds=60 * 2),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            Period=1 * 60,
             Statistics=[
                 'Average',
             ],
             Unit='Percent'
         )
-        return response
 
-    def get_instance_request_rate(self, instance_ids):
-        pass
+        cpu_stats = []
+        for point in response['Datapoints']:
+            hour = point['Timestamp'].hour
+            minute = point['Timestamp'].minute
+            time = hour + minute/60
+            cpu_stats.append([time, point['Average']])
+
+        cpu_stats = sorted(cpu_stats, key=itemgetter(0))
+
+        return cpu_stats
+
+    def get_instance_inbound_rate(self, instance_ids):
+        response = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=1 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            Dimensions=[{'Name': 'InstanceId', 'Value': instance_id}
+                        for instance_id in instance_ids],
+            MetricName='NetworkIn',
+            Namespace='AWS/EC2',  # Unit='Percent',
+            Statistics=['Sum']
+        )
+
+        return response
 
 
 if __name__ == "__main__":
     manager = InstanceManager()
+    instances = manager.get_instances()
+    # print(instances)
+    print("instance id is " + str(instances[0]['Instances'][0]['InstanceId']))
+    cpu_usage = manager.get_cup_utilization(
+        [instances[0]['Instances'][0]['InstanceId']])
+    # print(cpu_usage)

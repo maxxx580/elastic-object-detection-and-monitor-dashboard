@@ -11,4 +11,4 @@ mkdir -p app/static/uploaded_images
 }
 . venv/bin/activate
 pip3 install -r setup/requirements.txt
-gunicorn -w 1 -b 127.0.0.1:5000 wsgi:webapp --timeout 90 --graceful-timeout 60
+gunicorn -w 1 -b 127.0.0.1:5000 run_user:user_app --timeout 90 --graceful-timeout 60
