@@ -77,3 +77,6 @@ urllib3==1.25.8
 Werkzeug==0.16.1
 wrapt==1.11.2
 yarl==1.4.2
+boto3==1.9.235
+botocore==1.12.235
+s3transfer==0.2.1
