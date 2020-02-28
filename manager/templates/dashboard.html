@@ -65,116 +65,122 @@
   <script>
     $(document).ready(() => {
         $.ajax({url: "/workers/traffic", success: (result) => {
-            var timestamps = timeConverter(result.timestamps);
-            var ctx_cpu = document.getElementById('Inbound_Request').getContext('2d');
-            var myChart = new Chart(ctx_cpu, {
-                type: 'line',
-                data: {
-                    labels: timestamps,
-                    datasets: [{
-                        label: 'Inbound Request',
-                        data: result.datapoints,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(255, 206, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(255, 159, 64, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)',
-                            'rgba(255, 159, 64, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: 'Worker Inbound Traffic'
-                    },
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 50,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
+            if (result.isSuccess) {
+                var timestamps = timeConverter(result.timestamps);
+                var ctx_cpu = document.getElementById('Inbound_Request').getContext('2d');
+                var myChart = new Chart(ctx_cpu, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                            label: 'Inbound Request',
+                            data: result.datapoints,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: 'Worker Inbound Traffic'
+                        },
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 50,
+                                right: 10,
+                                top: 10,
+                                bottom: 10
+                            }
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                alert(result.message);
+            }
         }});
 
         $.ajax({url: "/workers/cpu", success: (result) => {
-            var timestamps = timeConverter(result.timestamps);
-            var ctx_cpu = document.getElementById('CPU_Usage').getContext('2d');
-            var myChart = new Chart(ctx_cpu, {
-                type: 'line',
-                data: {
-                    labels: timestamps,
-                    datasets: [{
-                        label: 'CPU Usage',
-                        data: result.datapoints,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(255, 206, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(255, 159, 64, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)',
-                            'rgba(255, 159, 64, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: 'Worker CPU Usage'
-                    },
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 50,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
+            if (result.isSuccess) {
+                var timestamps = timeConverter(result.timestamps);
+                var ctx_cpu = document.getElementById('CPU_Usage').getContext('2d');
+                var myChart = new Chart(ctx_cpu, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                            label: 'CPU Usage',
+                            data: result.datapoints,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: 'Worker CPU Usage'
+                        },
+                        maintainAspectRatio: false,
+                        layout: {
+                            padding: {
+                                left: 50,
+                                right: 10,
+                                top: 10,
+                                bottom: 10
+                            }
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                alert(result.message);
+            }
         }});
-        chart.canvas.parentNode.style.height = '128px';
-        chart.canvas.parentNode.style.width = '128px';
     });
 
 
