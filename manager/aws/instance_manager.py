@@ -2,6 +2,7 @@ import boto3
 import time
 
 from datetime import datetime, timedelta
+from operator import itemgetter
 
 
 class InstanceManager:
@@ -51,42 +52,54 @@ class InstanceManager:
         return [{"id": instance_status['InstanceId'], "state":instance_status['InstanceState']}
                 for instance_status in response['InstanceStatuses']]
 
-    def get_instances(self):
+    def get_instances(self, running_only=False):
         response = self.ec2.describe_instances()
         return response['Reservations']
 
-    def deploy_instance(self, instance_id):
-
-        # TODO: use aws code deploy
-        response = self.ssm.send_command(InstanceIds=[instance_id], DocumentName='AWS-RunShellScript',
-                                         Parameters={'commands': ["echo hello"]})
-        command_id = response['Command']['CommandId']
-        time.sleep(5)
-        output = self.ssm.get_command_invocation(
-            CommandId=command_id,
-            InstanceId=instance_id)
-
-        return output
-
-    def get_cup_utilization(self, instance_ids):
+    def get_cpu_utilization(self):
+        statistics = 'Average'
         response = self.cw.get_metric_statistics(
-            Namespace='AWS/EC2',
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='CPUUtilization',
-            Dimensions=[{'Name': 'InstanceId', 'Value': instance_id}
-                        for instance_id in instance_ids],
-            StartTime=datetime(2018, 4, 23) - timedelta(seconds=600),
-            EndTime=datetime(2018, 4, 24),
-            Period=86400,
-            Statistics=[
-                'Average',
-            ],
-            Unit='Percent'
+            Namespace='AWS/EC2',  # Unit='Percent',
+            Statistics=[statistics]
         )
-        return response
 
-    def get_instance_request_rate(self, instance_ids):
+        return self._data_conversion_helper(response, statistics)
+
+    def get_instance_inbound_rate(self):
+        statistics = 'Sum'
+        response = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='NetworkIn',
+            Namespace='AWS/EC2',  # Unit='Percent',
+            Statistics=[statistics]
+        )
+        return self._data_conversion_helper(response, statistics)
+
+    def register_instances_elb(self, instances_id):
         pass
+
+    def unregister_instances_elb(self, instances_id):
+        pass
+
+    def deploy_instance(self, instance_ids):
+        # TODO: use aws code deploy
+        pass
+
+    def _data_conversion_helper(self, response, statistics):
+        res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
+                point[statistics]] for point in response['Datapoints']]
+        return sorted(res, key=itemgetter(0))
 
 
 if __name__ == "__main__":
     manager = InstanceManager()
+    instances = manager.get_instances()
+    # print(instances)
+    cpu_usage = manager.get_instance_inbound_rate()
+    print(cpu_usage)
