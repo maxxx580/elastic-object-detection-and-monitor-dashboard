@@ -12,7 +12,12 @@ def create_app():
     @app.route('/')
     @app.route('/home')
     @app.route('/index')
-    def index():
-        return render_template('index.html')
+    @app.route('/dashboard')
+    def dashboard():
+        return render_template('dashboard.html')
+
+    @app.route('/workers_tracking')
+    def workers_tracking():
+        return render_template('workers_tracking.html')
 
     return app
