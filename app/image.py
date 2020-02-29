@@ -10,14 +10,16 @@ import numpy as np
 import time
 import collections
 import logging
+import boto3
 
+s3_client = boto3.client('s3')
 bp = Blueprint("image", __name__)
+BUCKET = "ece1779-a2-images"
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 # derive the paths to the YOLO weights and model configuration
 weightsPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.weights")
 configPath = os.path.join(APP_ROOT, "yolo-coco/yolov3.cfg")
-
 
 # load our YOLO object detector trained on COCO dataset (80 classes)
 print("[INFO] loading YOLO from disk...")
@@ -31,7 +33,7 @@ def upload():
     """[this endpoint authenticate user's credential and uploads one image for authenticated one with HTTP POST] 
 
     Returns:
-        [JSON] -- [this endpoints return a json object indecates if upload succeeds ]
+        [JSON] -- [this endpoints return a json object indicates if upload succeeds ]
     """
     logger = logging.getLogger()
     username = request.form["username"]
@@ -62,7 +64,7 @@ def profile():
     and returns updated profile view in HTML. This endpoint retrieves current profile view HTML with HTTP GET]
 
     Returns:
-        [HTML] -- [this endpoint returns hmtl for profile view upon successful uploading, otherwise error view]
+        [HTML] -- [this endpoint returns html for profile view upon successful uploading, otherwise error view]
     """
     username = session.get("username")
     try:
@@ -79,13 +81,9 @@ def profile():
                 abort(400)
 
     # order by timestamp
-    images_names = []
-    # create a dictionary with image_name as key and timestamp as value
+    # create a dictionary with timestamp as key and image_name as value
     dict_name = {}
-    images_path = getFromDatabase(username, "thumbnail")
-    for image_path in images_path:
-        path_parts = image_path.split("/")
-        images_names.append(path_parts[-1])
+    images_names = getFromDatabase(username, "thumbnail")
     for i in range(len(images_names)):
         im_name = images_names[i].split(".")[0]
         dict_name[im_name.split("_")[1]] = images_names[i]
@@ -95,7 +93,16 @@ def profile():
 
     result = dict_name.values()
 
-    return render_template("image/profile.html", username=username, images_names=result)
+    list_url = {}
+    for each in result:
+        list_url[each] = s3_client.generate_presigned_url('get_object',
+                                        Params={
+                                            'Bucket': BUCKET,
+                                            'Key': each,
+                                        },
+                                        ExpiresIn=3600)
+
+    return render_template("image/profile.html", username=username, images_names=list_url)
 
 
 @bp.route("/api/images", methods=["GET"])
@@ -111,46 +118,70 @@ def images():
     username = session.get("username")
     image_name_parts = pass_name.split(".")
     filename = image_name_parts[0][:-6] + "." + image_name_parts[1]
-    processed_filename = image_name_parts[0][:-
-                                             5] + "pro." + image_name_parts[1]
+    processed_filename = image_name_parts[0][:-5] + "pro." + image_name_parts[1]
 
-    return render_template("image/showImage.html", username=username, user_image=filename,
-                           user_image_pro=processed_filename)
+    image_url = s3_client.generate_presigned_url('get_object',
+                                        Params={
+                                            'Bucket': BUCKET,
+                                            'Key': filename,
+                                        },
+                                        ExpiresIn=3600)
+
+    pro_image_url = s3_client.generate_presigned_url('get_object',
+                                                 Params={
+                                                     'Bucket': BUCKET,
+                                                     'Key': processed_filename,
+                                                 },
+                                                 ExpiresIn=3600)
+
+    return render_template("image/showImage.html", username=username, user_image=image_url,
+                           user_image_pro=pro_image_url)
 
 
 def process_images(username, image):
     extension = image.filename.split('.')[-1]
     assert extension in set(
-        ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]),\
-        "Unsupported formmat "
+        ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]), \
+        "Unsupported format "
 
-    target = os.path.join(APP_ROOT, 'static/uploaded_images/' + username)
+    target = os.path.join(APP_ROOT, 'static/uploaded_images')
 
     if not os.path.isdir(target):
         os.mkdir(target)
 
     timestamp = str(int(time.time()))
     filename = username + "_" + timestamp + "." + extension
+
     image_path = "/".join([target, filename])
     # save images to file "uploaded_images"
     image.save(image_path)
-    # save image path to mysql
-    saveImagePath(image_path, username, timestamp, "original")
+
+    # save images to s3 bucket
+    # image.save(filename)
+    # upload_image(f"{filename}", BUCKET)
+    s3_client.upload_file(image_path, BUCKET, filename)
+    # save image name to mysql
+    saveImagePath(filename, username, timestamp, "original")
 
     # generate the processed image
     processed_filename = username + "_" + timestamp + "_pro" + "." + extension
     processed_path = "/".join([target, processed_filename])
-    objectDetection(filename, processed_path, username)
-    saveImagePath(processed_path, username, timestamp, "processed")
+    objectDetection(processed_path, image_path, processed_filename)
+    saveImagePath(processed_filename, username, timestamp, "processed")
 
-    # generate the thumbnail
+    # generate the thumbnail image
     im_thumb = Image.open(processed_path)
-    # convert to thumbnail image
     im_thumb.thumbnail((256, 256), Image.ANTIALIAS)
     thumb_filename = username + "_" + timestamp + "_thumb" + "." + extension
     thumb_path = "/".join([target, thumb_filename])
     im_thumb.save(thumb_path)
-    saveImagePath(thumb_path, username, timestamp, "thumbnail")
+    s3_client.upload_file(thumb_path, BUCKET, thumb_filename)
+    saveImagePath(thumb_filename, username, timestamp, "thumbnail")
+
+    os.remove(image_path)
+    os.remove(processed_path)
+    os.remove(thumb_path)
+
 
 
 def saveImagePath(location, username, currenttime, pictype):
@@ -166,7 +197,7 @@ def getFromDatabase(username, pictype):
     cnx = get_db()
     db_cursor = cnx.cursor()
     query = "SELECT location FROM Image WHERE username='" + \
-        username + "' AND pictype='" + pictype + "'"
+            username + "' AND pictype='" + pictype + "'"
     db_cursor.execute(query)
     result = db_cursor.fetchall()
     lst_path = []
@@ -179,7 +210,7 @@ def getFromDatabase(username, pictype):
     return lst_path
 
 
-def objectDetection(file_name, image_path, username):
+def objectDetection(processed_path, image_path, store_name):
     # load the COCO class labels our YOLO model was trained on
     labelsPath = os.path.join(APP_ROOT, 'yolo-coco/coco.names')
     # labelsPath = os.path.sep.join(["yolo-coco", "coco.names"])
@@ -191,9 +222,7 @@ def objectDetection(file_name, image_path, username):
                                dtype="uint8")
 
     # load our input image and grab its spatial dimensions
-    readImagePath = os.path.join(
-        APP_ROOT, "static/uploaded_images/" + username + "/" + file_name)
-    image = cv2.imread(readImagePath)
+    image = cv2.imread(image_path)
     (H, W) = image.shape[:2]
 
     # determine only the *output* layer names that we need from YOLO
@@ -267,5 +296,33 @@ def objectDetection(file_name, image_path, username):
             cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
                         0.5, color, 2)
 
-    # show the output image
-    cv2.imwrite(image_path, image)
+    # save the output image
+    cv2.imwrite(processed_path, image)
+    s3_client.upload_file(processed_path, BUCKET, store_name)
+
+
+# def download_image(file_name, bucket):
+#     """
+#     Function to download a given file from an S3 bucket
+#     """
+#     s3 = boto3.resource('s3')
+#     output = f"downloads/{file_name}"
+#     s3.Bucket(bucket).download_file(file_name, output)
+#
+#     return output
+
+#
+# def list_files(bucket):
+#     """
+#     Function to list files in a given S3 bucket
+#     """
+#     s3 = boto3.client('s3')
+#     contents = []
+#     try:
+#         for item in s3.list_objects(Bucket=bucket)['Contents']:
+#             print(item)
+#             contents.append(item)
+#     except Exception as e:
+#         pass
+#
+#     return contents

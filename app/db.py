@@ -5,7 +5,7 @@ from flask.cli import with_appcontext
 
 config = {
     'username': 'root',
-    'password': 'ece1779pass',
+    'password': 'MYD0622',
     'host': "127.0.0.1",
     'port': 3306,
     'db': 'ece1779_a1'
