@@ -44,10 +44,10 @@
                 <h3>Click on an image to see the original image and the processed image.</h3>
             </div>
             <hr>
-            {% for image_name in images_names %}
+            {% for image_name, image_path in images_names.items() %}
                 <div class="col-lg-3 col-md-4 col-xs-6 thumb">
 '<!--                <img class="img-responsive" src="../static/uploaded_images/{{username}}/{{ image_name }}" alt="User Image" onclick="{{url_for('image.images', image_name = image_name)}}">-->
-                <img class="img-responsive" src="https://s3.amazonaws.com/ece1779-a2-images/{{ image_name }}" alt="User Image" id="{{image_name}}" onclick="getNextPage(this.id)">
+                <img class="img-responsive" src="{{ image_path }}" alt="User Image" id="{{image_name}}" onclick="getNextPage(this.id)">
                 </div>
             {% endfor %}
         </div>
