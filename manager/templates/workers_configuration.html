@@ -39,10 +39,43 @@
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
         </div>
     </nav>
-
-    <button type="button" id='scale-up-button' class="btn btn-success">Scale Up</button>
-    <button type="button" id='scale-down-button' class="btn btn-danger">Scale Down</button>
-
+    <div class="container-fluid col-8">
+      <caption><p class="h3">All Instances</p></caption>
+      <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Instance Id</th>
+          <th scope="col">Instance Ip</th>
+          <th scope="col">State</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">1</th>
+          <td>i-1234345</td>
+          <td>0.0.0.0</td>
+          <td>Running</td>
+          <td><button type="button" id='scale-down-button' class="btn btn-danger">Terminate</button></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    
+    <div class="container-fluid col-6">
+      <caption><p class="h3">Actions</p></caption>
+      <table class="table table-striped">
+      <tbody>
+        <tr>
+          <td><button type="button" id='scale-up-button' class="btn btn-success">Scale Up</button></td>
+          <td><button type="button" id='scale-down-button' class="btn btn-warning">Scale Down</button></td>
+          <td><button type="button" id='scale-down-button' class="btn btn-danger">Clear All</button></td>
+          <td><button type="button" id='scale-down-button' class="btn btn-danger">Terminate</button></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
 </body>
 
   <script>

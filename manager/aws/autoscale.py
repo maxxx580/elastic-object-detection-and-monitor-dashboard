@@ -2,31 +2,40 @@
 class AutoScaler():
 
     def __init__(self, ec2_manager):
-        print("###### auto scaller created #########")
         self.worker_pool = set()
         self.starting_up_pool = set()
         self.shunting_down_pool = set()
         self.ec2_manager = ec2_manager
 
-    def autoscale(self):
-        # TODO: 1.check if auto scale required. 2.deployed recently launched. 3. terminate shut down
+    def auto_scale(self):
         pass
 
-    def scale_up(self):
-        aws_instance = self.ec2_manager.launch_instance()
-
-        # TODO: IMPORTANT !!!! this is for dev only. should add to starting up pool instead
-        self.worker_pool.add(aws_instance[0]['InstanceId'])
-        return aws_instance
+    def scale_up(self, k=1):
+        instances = self.ec2_manager.launch_instance(k)
+        for instance in instances:
+            self.starting_up_pool.add(instance[0]['InstanceId'])
+        return instances
 
     def scale_down(self, instance_id=None):
-        print(self.worker_pool)
         assert len(self.worker_pool) >= 1, 'no instance left'
-
         if not instance_id:
             instance_id = list(self.worker_pool)[0]
-
         for instance in list(self.worker_pool):
             if instance == instance_id:
                 self.worker_pool.remove(instance)
                 self.shunting_down_pool.add(instance)
+
+    def auto_update(self):
+        if self.shunting_down_pool:
+            instances_to_terminate = list(filter(
+                lambda x: x['state'] == 'terminated', self.ec2_manager.get_instance_status(list(self.shunting_down_pool))))
+            instances_terminated = self.ec2_manager.terminate_instance(
+                instances_to_terminate)
+            self.shunting_down_pool -= set(instances_terminated)
+
+        if self.shunting_down_pool:
+            instances_to_deploy = list(filter(
+                lambda x: x['state'] == 'running', self.ec2_manager.get_instance_status(list(self.starting_up_pool))))
+            instances_deployed = self.ec2_manager.deploy_instances(
+                instances_to_deploy)
+            self.starting_up_pool -= set(instances_deployed)

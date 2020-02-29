@@ -12,6 +12,7 @@ class InstanceManager:
         self.cw = boto3.client('cloudwatch')
         self.ec2 = boto3.client('ec2')
         self.cd = boto3.client('codedeploy')
+        self.elb = boto3.client('elbv2')
 
         self.user_app_tag = 'ece1779-a2'
         self.image_id = 'ami-baf632ac'
@@ -41,20 +42,24 @@ class InstanceManager:
                                           Placement=self.tag_placement)
         return response['Instances']
 
-    def terminate_instance(self, instance_id):
+    def terminate_instance(self, instance_ids):
         assert all(isinstance(instance_id, str)
-                   for instance_id in instance_id)
-        self.ec2.terminate_instances(InstanceIds=[instance_id], DryRun=False)
-        return instance_id
+                   for instance_id in instance_ids)
+        self.ec2.terminate_instances(InstanceIds=instance_ids, DryRun=False)
+        return instance_ids
 
-    def get_instance_status(self, instance_id):
-        response = self.ec2.describe_instance_status(InstanceIds=[instance_id])
+    def get_instance_status(self, instance_ids):
+        response = self.ec2.describe_instance_status(InstanceIds=instance_ids)
         return [{"id": instance_status['InstanceId'], "state":instance_status['InstanceState']}
                 for instance_status in response['InstanceStatuses']]
 
-    def get_instances(self, running_only=False):
+    def get_instances(self, live_only=False):
         response = self.ec2.describe_instances()
-        return response['Reservations']
+
+        if live_only:
+            return list(filter(lambda x: x['State']['Name'] in ['pending', 'running'], response['Reservations'][0]['Instances']))
+
+        return response['Reservations'][0]['Instances']
 
     def get_cpu_utilization(self):
         statistics = 'Average'
@@ -81,15 +86,14 @@ class InstanceManager:
         )
         return self._data_conversion_helper(response, statistics)
 
-    def register_instances_elb(self, instances_id):
+    def register_instances_elb(self, instance_ids):
         pass
 
-    def unregister_instances_elb(self, instances_id):
+    def unregister_instances_elb(self, instance_ids):
         pass
 
-    def deploy_instance(self, instance_ids):
-        # TODO: use aws code deploy
-        pass
+    def deploy_instances(self, instance_ids):
+        return instance_ids
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
@@ -100,6 +104,5 @@ class InstanceManager:
 if __name__ == "__main__":
     manager = InstanceManager()
     instances = manager.get_instances()
-    # print(instances)
     cpu_usage = manager.get_instance_inbound_rate()
     print(cpu_usage)
