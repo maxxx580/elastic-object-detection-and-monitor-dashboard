@@ -18,7 +18,6 @@ Click==7.0
 cvlib==0.2.3
 dnspython==1.16.0
 docutils==0.15.2
-ece1779-a1==0.9.9
 Flask==1.1.1
 Flask-Bcrypt==0.7.1
 gast==0.2.2

@@ -43,9 +43,14 @@ def get_worker_inbount_traffic():
         })
 
 
-@bp.route('/pool_size', methods=['GET'])
+@bp.route('/pool_sizes', methods=['GET'])
 def get_worker_pool_size():
-    return jsonify({'size': len(manager.worker_pool_size)})
+    sizes = [s[0] for s in manager.worker_pool_size]
+    timestamps = [t[1] for t in manager.worker_pool_size]
+    return jsonify({
+        'sizes': sizes,
+        'timestamps': timestamps
+    })
 
 
 @bp.route('/', methods=['GET', 'POST', 'DELETE'])
