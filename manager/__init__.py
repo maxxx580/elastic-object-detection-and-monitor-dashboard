@@ -6,14 +6,15 @@ from datetime import timedelta
 from flask import Flask, url_for, redirect, render_template
 from flask_caching import Cache
 from manager import workers
-from manager.aws import autoscale
+from manager.aws import autoscale, instance_manager
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
 worker_pool_size = []
-auto_scaler = autoscale.AutoScaler()
+ec2_manager = instance_manager.InstanceManager()
+auto_scaler = autoscale.AutoScaler(ec2_manager)
 
 
 def create_app():
@@ -32,7 +33,11 @@ def create_app():
     def workers_dashboard():
         return render_template('workers_dashboard.html')
 
-    @app.route('/logint', methods=['POST'])
+    @app.route('/workers_configuration')
+    def worker_configuration():
+        return render_template('workers_configuration.html')
+
+    @app.route('/login', methods=['POST'])
     def login():
         pass
 

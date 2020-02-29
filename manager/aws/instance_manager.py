@@ -11,7 +11,7 @@ class InstanceManager:
 
         self.cw = boto3.client('cloudwatch')
         self.ec2 = boto3.client('ec2')
-        self.ssm = boto3.client('ssm')
+        self.cd = boto3.client('codedeploy')
 
         self.user_app_tag = 'ece1779-a2'
         self.image_id = 'ami-baf632ac'

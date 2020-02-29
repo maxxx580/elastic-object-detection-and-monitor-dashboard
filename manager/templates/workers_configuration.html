@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-    <title>Worker Dashboard</title>
+    <title>Worker Configuration</title>
         <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
@@ -29,70 +29,45 @@
             <li class="nav-item">
                 <a class="nav-link" href="/dashboard">Dashboard </a>
             </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="workers_dashboard">Number of workers</a>
-            </li>
             <li class="nav-item">
-                <a class="nav-link" href="workers_configuration">Configuration</a>
+                <a class="nav-link" href="/workers_dashboard">Number of workers</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/workers_configuration">Configuration</a>
             </li>
             </ul>
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
         </div>
     </nav>
-    <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-        <canvas id="workers" height="500vw" width="600vw"></canvas>
-    </div>
+
+    <button type="button" id='scale-up-button' class="btn btn-success">Scale Up</button>
+    <button type="button" id='scale-down-button' class="btn btn-danger">Scale Down</button>
+
 </body>
 
   <script>
     $(document).ready(() => {
-        $.ajax({url: "/workers/pool_sizes", success: (result) => {
-            var timestamps = result.timestamps.map((ele) => {
-                var d = new Date(ele);
-                return d.getHours() + ":" + d.getMinutes();
-            });
-            var ctx_pool_size = document.getElementById('workers').getContext('2d');
-            var myChart = new Chart(ctx_pool_size, {
-                type: 'line',
-                data: {
-                    labels: timestamps,
-                    datasets: [{
-                        label: 'Inbound Request',
-                        data: result.sizes,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: 'Number of works in the past 30 minutes'
-                    },
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 50,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
-                    }
-                }
-            });
-        }});
+        $("#scale-up-button").click(function(){
+          $.ajax({
+            type: "POST",
+            url: 'workers',
+            data: [],
+            success: (result) => {
+              alert("post success")
+            }
+          });
+        });
+
+        $("#scale-down-button").click(function(){
+          $.ajax({
+            type: "DELETE",
+            url: 'workers',
+            data: [],
+            success: (result) => {
+              alert("delete success")
+            }
+          });
+        });
     });
   </script>
 

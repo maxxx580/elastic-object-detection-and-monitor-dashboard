@@ -58,10 +58,10 @@ def register():
         result_name = r'^[A-Za-z0-9._-]{2,100}$'
         result_password = r'^.{6,}$'
 
-        assert re.match(result_name, username, re.M | re.I), \
-            "Username should have 2 to 100 characters, and only contains letter, number, underline and dash."
-        assert re.match(result_password, password), \
-            "Password should have 6 to 18 characters"
+        assert re.match(result_name, username, re.M | re.I)
+        "Username should have 2 to 100 characters, and only contains letter, number, underline and dash."
+        assert re.match(result_password, password)
+        "Password should have 6 to 18 characters"
 
         assert len(password) >= 6, "Password should be longer than 6 characters"
         assert 2 <= len(

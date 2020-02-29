@@ -1,16 +1,15 @@
-from flask import Blueprint, jsonify, request
-from manager.aws import instance_manager
+from flask import Blueprint, jsonify, request, abort
+from manager.aws import instance_manager, autoscale
 import manager
 
 bp = Blueprint("workers", __name__, url_prefix='/workers')
-ec2_manager = instance_manager.InstanceManager()
 
 
 @bp.route('/cpu', methods=['GET'])
 def get_worker_cpu_usage():
 
     try:
-        cpu_usage_data = ec2_manager.get_cpu_utilization()
+        cpu_usage_data = manager.ec2_manager.get_cpu_utilization()
         time_stamps, datapoints = data_convert_helper(cpu_usage_data)
         return jsonify({
             'isSuccess': True,
@@ -28,7 +27,7 @@ def get_worker_cpu_usage():
 @bp.route('/traffic', methods=['GET'])
 def get_worker_inbount_traffic():
     try:
-        inbound_traffic = ec2_manager.get_instance_inbound_rate()
+        inbound_traffic = manager.ec2_manager.get_instance_inbound_rate()
         time_stamps, datapoints = data_convert_helper(inbound_traffic)
         return jsonify({
             'isSuccess': True,
@@ -56,14 +55,32 @@ def get_worker_pool_size():
 @bp.route('/', methods=['GET', 'POST', 'DELETE'])
 def workers():
     try:
-        if request.methods == 'GET':
-            instances = ec2_manager.get_instances()
+        if request.method == 'GET':
+            instances = manager.ec2_manager.get_instances()
             return jsonify({
                 'isSuccess': True,
                 'data': instances
             })
+        elif request.method == 'POST':
+            instance = manager.auto_scaler.scale_up()
+            return jsonify({
+                'isSuccess': True,
+                'data': instance
+            })
+        elif request.method == 'DELETE':
+            data = request.get_json()
+            if data:
+                manager.auto_scaler.scale_down(data['instance_id'])
+            else:
+                manager.auto_scaler.scale_down()
+            return jsonify({
+                'isSuccess': True,
+            })
+        else:
+            abort(405)
 
     except Exception as e:
+        print(e)
         return jsonify({
             'isSuccess': False,
             'message': e.args
