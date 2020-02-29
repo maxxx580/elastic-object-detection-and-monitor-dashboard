@@ -1,5 +1,8 @@
 #!/bin/sh
-mysql -u root "-pece1779pass" < setup/setup.sql
+#mysql -u root "-ppassword" < setup/setup.sql
+
+#mysql -h ece1779test.cb9p4b3u80au.us-east-1.rds.amazonaws.com -P 3306 -u admin -p
+
 mkdir -p app/static
 mkdir -p app/static/uploaded_images
 {

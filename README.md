@@ -82,10 +82,10 @@ This application exposes two endpoints below for testing purposes.
     ~~~
 
 ## System Architectures
-The web pages act as the client and send requests to and gets responses from the server deployed on an instance of AWS EC2. The gunicorn application server is set up to launch the flask web application at port 5000. The flask web application communicates with the database at port 3306.
+The web pages act as the client and send requests to and gets responses from the server deployed on an instance of AWS EC2. The gunicorn application server is set up to launch the flask web application at port 5000. The flask web application communicates with the db at port 3306.
 ![DB ER](documentation/figures/diagram.png) 
 
-There are two tables in the database. The user table takes username as the primary key and it stores users' credential information. The password stored is the hash of the original password concatenated with a per-user salt value. The image table has an id incremented automatically and a foreign key referenced from the username in the user table. The image table also contains some image information, like the storage location of the image, the timestamp and the type of the image(i.e. original, processed or thumbnail). This database follows the 3NF.
+There are two tables in the db. The user table takes username as the primary key and it stores users' credential information. The password stored is the hash of the original password concatenated with a per-user salt value. The image table has an id incremented automatically and a foreign key referenced from the username in the user table. The image table also contains some image information, like the storage location of the image, the timestamp and the type of the image(i.e. original, processed or thumbnail). This db follows the 3NF.
 ![DBER](documentation/figures/DBER.jpg)    
 
 ## Error Handling

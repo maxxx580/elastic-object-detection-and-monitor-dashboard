@@ -1,7 +1,7 @@
 import bcrypt
 from flask import Blueprint, flash, g, redirect, session, render_template, request, url_for, jsonify
 from .user import login_required, authenticate
-from app.db import get_db, close_db
+
 from werkzeug.exceptions import abort
 from PIL import Image
 import cv2
@@ -11,6 +11,8 @@ import time
 import collections
 import logging
 import boto3
+import app
+
 
 s3_client = boto3.client('s3')
 bp = Blueprint("image", __name__)
@@ -54,7 +56,7 @@ def upload():
     except Exception:
         abort(500)
     finally:
-        close_db()
+        pass
 
 
 @bp.route("/api/profile", methods=["GET", "POST"])
@@ -83,7 +85,7 @@ def profile():
     # order by timestamp
     # create a dictionary with timestamp as key and image_name as value
     dict_name = {}
-    images_names = getFromDatabase(username, "thumbnail")
+    images_names = getFromdb(username, "thumbnail")
     for i in range(len(images_names)):
         im_name = images_names[i].split(".")[0]
         dict_name[im_name.split("_")[1]] = images_names[i]
@@ -96,11 +98,11 @@ def profile():
     list_url = {}
     for each in result:
         list_url[each] = s3_client.generate_presigned_url('get_object',
-                                        Params={
-                                            'Bucket': BUCKET,
-                                            'Key': each,
-                                        },
-                                        ExpiresIn=3600)
+                                                          Params={
+                                                              'Bucket': BUCKET,
+                                                              'Key': each,
+                                                          },
+                                                          ExpiresIn=3600)
 
     return render_template("image/profile.html", username=username, images_names=list_url)
 
@@ -118,21 +120,22 @@ def images():
     username = session.get("username")
     image_name_parts = pass_name.split(".")
     filename = image_name_parts[0][:-6] + "." + image_name_parts[1]
-    processed_filename = image_name_parts[0][:-5] + "pro." + image_name_parts[1]
+    processed_filename = image_name_parts[0][:-
+                                             5] + "pro." + image_name_parts[1]
 
     image_url = s3_client.generate_presigned_url('get_object',
-                                        Params={
-                                            'Bucket': BUCKET,
-                                            'Key': filename,
-                                        },
-                                        ExpiresIn=3600)
-
-    pro_image_url = s3_client.generate_presigned_url('get_object',
                                                  Params={
                                                      'Bucket': BUCKET,
-                                                     'Key': processed_filename,
+                                                     'Key': filename,
                                                  },
                                                  ExpiresIn=3600)
+
+    pro_image_url = s3_client.generate_presigned_url('get_object',
+                                                     Params={
+                                                         'Bucket': BUCKET,
+                                                         'Key': processed_filename,
+                                                     },
+                                                     ExpiresIn=3600)
 
     return render_template("image/showImage.html", username=username, user_image=image_url,
                            user_image_pro=pro_image_url)
@@ -183,30 +186,40 @@ def process_images(username, image):
     os.remove(thumb_path)
 
 
-
 def saveImagePath(location, username, currenttime, pictype):
-    cnx = get_db()
-    db_cursor = cnx.cursor()
-    query = 'INSERT INTO Image (location, username, currenttime, pictype) VALUES (%s,%s,%s,%s)'
-    db_cursor.execute(query, (location, username, currenttime, pictype))
-    cnx.commit()
-    close_db()
+    # cnx = get_db()
+    # db_cursor = cnx.cursor()
+    # query = 'INSERT INTO Image (location, username, currenttime, pictype) VALUES (%s,%s,%s,%s)'
+
+    new_image = app.ImageModel(
+        location=location, username=username, currenttime=currenttime, pictype=pictype)
+    app.db.session.add(new_image)
+    app.db.session.commit()
+
+    # db_cursor.execute(query, (location, username, currenttime, pictype))
+    # cnx.commit()
+    # close_db()
 
 
-def getFromDatabase(username, pictype):
-    cnx = get_db()
-    db_cursor = cnx.cursor()
-    query = "SELECT location FROM Image WHERE username='" + \
-            username + "' AND pictype='" + pictype + "'"
-    db_cursor.execute(query)
-    result = db_cursor.fetchall()
-    lst_path = []
-    for row in result:
-        path = str(row)[2:-3]
-        print("image path: " + path)
-        lst_path.append(path)
-    cnx.commit()
-    close_db()
+def getFromdb(username, pictype):
+    # cnx = get_db()
+    # db_cursor = cnx.cursor()
+    # query = "SELECT location FROM Image WHERE username='" + \
+    #     username + "' AND pictype='" + pictype + "'"
+    # db_cursor.execute(query)
+    # result = db_cursor.fetchall()
+
+    lst_path = list(app.ImageModel.query.filter_by(
+        username=username, pictype=pictype).all())
+
+    # lst_path = []
+    # for row in result:
+    #     path = str(row)[2:-3]
+    #     print("image path: " + path)
+    #     lst_path.append(path)
+    # # cnx.commit()
+    # # close_db()
+    # list_path=result
     return lst_path
 
 
