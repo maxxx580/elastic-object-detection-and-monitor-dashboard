@@ -86,9 +86,9 @@ def profile():
     # create a dictionary with timestamp as key and image_name as value
     dict_name = {}
     images_names = getFromdb(username, "thumbnail")
-    for i in range(len(images_names)):
-        im_name = images_names[i].split(".")[0]
-        dict_name[im_name.split("_")[1]] = images_names[i]
+    for image in images_names:
+        im_name = image.location.split(".")[0]
+        dict_name[im_name.split("_")[1]] = image.location
     # sort dictionary by timestamp
     dict_name = collections.OrderedDict(
         sorted(dict_name.items(), reverse=True))

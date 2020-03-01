@@ -165,5 +165,5 @@ def authenticate(username, password):
 
     assert user is not None, "invalid credential"
     assert bcrypt.checkpw(password.encode('utf-8'),
-                   user.password), "invalid credential"
+                   user.password.encode('utf-8')), "invalid credential"
 
