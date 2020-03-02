@@ -1,8 +1,8 @@
-import boto3
 import time
-
 from datetime import datetime, timedelta
 from operator import itemgetter
+
+import boto3
 
 
 class InstanceManager:
@@ -31,6 +31,7 @@ class InstanceManager:
         self.tag_placement = {'AvailabilityZone': 'us-east-1a'}
 
     def launch_instance(self, k=1):
+        # TODO use group or tag to differentiate worker from master
         response = self.ec2.run_instances(ImageId=self.image_id,
                                           InstanceType=self.instance_type,
                                           KeyName=self.key_pair,
@@ -62,6 +63,7 @@ class InstanceManager:
         return response['Reservations'][0]['Instances']
 
     def get_cpu_utilization(self):
+        # TODO: only calculate for deployed worker instances
         statistics = 'Average'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,

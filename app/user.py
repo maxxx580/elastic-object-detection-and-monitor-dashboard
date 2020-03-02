@@ -1,17 +1,15 @@
 import functools
 import logging
 import re
+
 import bcrypt
-from flask import (Blueprint, flash, g, jsonify, redirect, render_template,
-                   request, session, url_for, abort)
-
-
-from werkzeug.exceptions import abort
-import app
-
-
-from sqlalchemy import update
+from flask import (Blueprint, abort, flash, g, jsonify, redirect,
+                   render_template, request, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import update
+from werkzeug.exceptions import abort
+
+import app
 
 bp = Blueprint("user", __name__)
 
@@ -81,7 +79,7 @@ def register():
 
         pw_hashed = bcrypt.hashpw(password, salt)
 
-        new_user = app.UserModel(username = username, password = pw_hashed)
+        new_user = app.UserModel(username=username, password=pw_hashed)
         app.db.session.add(new_user)
         app.db.session.commit()
 
@@ -165,5 +163,4 @@ def authenticate(username, password):
 
     assert user is not None, "invalid credential"
     assert bcrypt.checkpw(password.encode('utf-8'),
-                   user.password.encode('utf-8')), "invalid credential"
-
+                          user.password.encode('utf-8')), "invalid credential"

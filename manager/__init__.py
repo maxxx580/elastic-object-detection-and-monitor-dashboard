@@ -1,16 +1,14 @@
-import time
 import atexit
-
-from datetime import timedelta
-
-from flask import Flask, url_for, redirect, render_template
-from flask_caching import Cache
-from manager import workers
-from manager.aws import autoscale, instance_manager
-from datetime import datetime
+import logging
+import time
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, redirect, render_template, url_for
+from flask_caching import Cache
 
+from manager import workers
+from manager.aws import autoscale, instance_manager
 
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
@@ -18,7 +16,7 @@ auto_scaler = autoscale.AutoScaler(ec2_manager)
 
 
 def create_app():
-
+    logger = logging.getLogger('manager')
     app = Flask(__name__, instance_relative_config=True)
     app.register_blueprint(workers.bp)
 
@@ -54,8 +52,8 @@ def create_app():
             worker_pool_size.pop(0)
         worker_pool_size.append(
             (len(auto_scaler.worker_pool), datetime.utcnow()))
-        print("##############Updating worker pool size: %d ############" %
-              worker_pool_size[-1][0])
+        logger.info(msg="[%s] updated worker pool; current worker pool size is %d" %
+                    (str(datetime.now()), worker_pool_size[-1][0]))
 
     update_worker_pool_size()
     scheduler = BackgroundScheduler()

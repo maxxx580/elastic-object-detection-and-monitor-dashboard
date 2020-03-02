@@ -32,10 +32,12 @@ class AutoScaler():
             instances_terminated = self.ec2_manager.terminate_instance(
                 instances_to_terminate)
             self.shunting_down_pool -= set(instances_terminated)
+            # TODO: de-register them to ELB
 
         if self.shunting_down_pool:
             instances_to_deploy = list(filter(
                 lambda x: x['state'] == 'running', self.ec2_manager.get_instance_status(list(self.starting_up_pool))))
             instances_deployed = self.ec2_manager.deploy_instances(
                 instances_to_deploy)
-            self.starting_up_pool -= set(instances_deployed)
+            self.starting_up_pool += set(instances_deployed)
+            # TODO: register them to ELB
