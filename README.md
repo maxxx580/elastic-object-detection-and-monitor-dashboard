@@ -34,10 +34,10 @@ Gunicorn 20.0.4
 
 ### Authentication view
 Users are required to be authenticated before uploading images. Unauthenticated accesses will be redirected to the login page. 
-![Log in page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.37&#32;PM.png)  
+![Log in page](documentation/figures/login.png)  
 
 During registration, users should provide a unique username and a password. Username should have 2 to 100 characters, and contains only letters, numbers, dash and underscore. Password should have 6 or more characters. Validation of username and password is performed on server end. Users will be redirected to the login page upon successful registration. 
-![Registration page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.38.19&#32;PM.png)  
+![Registration page](documentation/figures/register.png)  
 
 ### Profile view
 Users will be redirected to profile upon successful login. The profile view contains an image upload form and a gallery of thumbnails of the processed images. Users can select an image file and click on the upload button to add a new image to the profile. In the gallery section, users can only view the images uploaded by themselves.
