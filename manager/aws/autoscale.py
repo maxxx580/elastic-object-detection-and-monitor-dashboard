@@ -21,13 +21,14 @@ class AutoScaler():
         self.pool_lock.release()
         return instances
 
-    def scale_down(self, instance_id=None):
-        assert len(self.worker_pool) > 1, 'no instance left'
-        if not instance_id:
-            instance_id = list(self.worker_pool)[0]
+    def scale_down(self, k=1):
+        assert len(self.worker_pool) > k, 'k is more than number of instances'
+        instances_to_terminated = set()
+        for i in range(k):
+            instances_to_terminated.add(list(self.worker_pool)[i])
         self.pool_lock.acquire()
         for instance in list(self.worker_pool):
-            if instance == instance_id:
+            if instance in instances_to_terminated:
                 self.worker_pool.remove(instance)
                 self.shunting_down_pool.add(instance)
         self.pool_lock.release()
