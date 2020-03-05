@@ -10,7 +10,9 @@ class AutoScaler():
         self.ec2_manager = ec2_manager
         self.pool_lock = threading.Lock()
 
-    def auto_scale(self):
+    def auto_scale(self): #2 MINUTES
+        # TODO: check CPU utilization for last 2 minutes / every 2 minutes,
+
         pass
 
     def scale_up(self, k=1):
@@ -33,7 +35,7 @@ class AutoScaler():
                 self.shunting_down_pool.add(instance)
         self.pool_lock.release()
 
-    def auto_update(self):
+    def auto_update(self): #30 SECONDS
         if self.shunting_down_pool:
             instances_terminated = self.ec2_manager.terminate_instance(
                 list(self.shunting_down_pool))
