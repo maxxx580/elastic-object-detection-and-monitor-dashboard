@@ -55,11 +55,16 @@ class InstanceManager:
 
     def get_instances(self, live_only=False):
         response = self.ec2.describe_instances()
+        response_restructured = []
+        for reservation in response['Reservations']:
+            for instance in reservation['Instances']:
+                response_restructured.append(instance)
 
         if live_only:
-            return list(filter(lambda x: x['State']['Name'] in ['pending', 'running'], response['Reservations'][0]['Instances']))
+            return list(filter(lambda x: x['State']['Name'] in ['pending', 'running'],
+                               response_restructured))
 
-        return response['Reservations'][0]['Instances']
+        return response_restructured
 
     def get_cpu_utilization(self):
         # TODO: only calculate for deployed worker instances
