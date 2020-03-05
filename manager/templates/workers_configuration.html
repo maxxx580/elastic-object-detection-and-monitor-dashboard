@@ -63,8 +63,8 @@
           <tr>
             <td><button type="button" id='scale-up-button' class="btn btn-success">Scale Up</button></td>
             <td><button type="button" id='scale-down-button' class="btn btn-warning">Scale Down</button></td>
-            <td><button type="button" id='scale-down-button' class="btn btn-danger">Clear All</button></td>
-            <td><button type="button" id='scale-down-button' class="btn btn-danger">Terminate</button></td>
+            <td><button type="button" id='clear-all-button' class="btn btn-danger">Clear All</button></td>
+            <td><button type="button" id='terminate-button' class="btn btn-danger">Terminate</button></td>
           </tr>
         </tbody>
     </table>
@@ -105,7 +105,7 @@
             url: 'workers',
             data: [],
             success: (result) => {
-              alert('instance created');
+              alert('One instance created');
             }
           });
         });
@@ -116,10 +116,33 @@
             url: 'workers',
             data: [],
             success: (result) => {
-              alert('instance terminated');
+              alert('One instance terminated');
             }
           });
         });
+
+        $("#clear-all-button").click(function(){
+          $.ajax({
+            type: "DELETE",
+            url: 'clearall',
+            data: [],
+            success: (result) => {
+              alert('All data cleared');
+            }
+          });
+        });
+
+        $("#terminate-button").click(function(){
+          $.ajax({
+            type: "POST",
+            url: 'terminate',
+            data: [],
+            success: (result) => {
+              alert('All instances terminated');
+            }
+          });
+        });
+
     });
   </script>
 

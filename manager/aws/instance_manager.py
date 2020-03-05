@@ -68,12 +68,12 @@ class InstanceManager:
 
         return response_restructured
 
-    def get_cpu_utilization(self):
+    def get_cpu_utilization(self, k=30):
         # TODO: only calculate for deployed worker instances
         statistics = 'Average'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=k * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='CPUUtilization',
             Namespace='AWS/EC2',  # Unit='Percent',

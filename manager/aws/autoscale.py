@@ -1,7 +1,14 @@
 import threading
+import sys
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+import manager
+from manager.aws import autoscale, instance_manager
 
 
 class AutoScaler():
+
 
     def __init__(self, ec2_manager):
         self.worker_pool = set()
@@ -11,9 +18,20 @@ class AutoScaler():
         self.pool_lock = threading.Lock()
 
     def auto_scale(self): #2 MINUTES
-        # TODO: check CPU utilization for last 2 minutes / every 2 minutes,
+        # check CPU utilization for last 2 minutes / every 1 minute,
 
-        pass
+        cpu_usage_data = manager.ec2_manager.get_cpu_utilization(k=2)
+        cpu_avg = cpu_usage_data.mean()
+        if cpu_avg >= 70:
+            increase_pool = len(self.worker_pool)*cpu_avg/50 - (len(self.worker_pool) + len(self.starting_up_pool))
+            self.scale_up(k=increase_pool)
+        elif cpu_avg <= 30:
+            decrease_pool = (len(self.worker_pool) + len(self.starting_up_pool)) - len(self.worker_pool)*cpu_avg/50
+            self.scale_down(k=decrease_pool)
+        else:
+            pass
+
+
 
     def scale_up(self, k=1):
         instances = self.ec2_manager.launch_instance(k)
@@ -35,7 +53,7 @@ class AutoScaler():
                 self.shunting_down_pool.add(instance)
         self.pool_lock.release()
 
-    def auto_update(self): #30 SECONDS
+    def auto_update(self): 
         if self.shunting_down_pool:
             instances_terminated = self.ec2_manager.terminate_instance(
                 list(self.shunting_down_pool))
@@ -59,4 +77,3 @@ class AutoScaler():
             self.pool_lock.release()
             # TODO: register them to ELB
             self.ec2_manager.register_instances_elb(self, deployed_instances_id)
-
