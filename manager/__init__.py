@@ -60,7 +60,7 @@ def create_app():
     scheduler.add_job(func=update_worker_pool_size,
                       trigger="interval", seconds=60)
     scheduler.add_job(func=auto_scaler.auto_update,
-                      trigger='interval', seconds=120)
+                      trigger='interval', seconds=30)
     scheduler.start()
 
     atexit.register(lambda: scheduler.shutdown())

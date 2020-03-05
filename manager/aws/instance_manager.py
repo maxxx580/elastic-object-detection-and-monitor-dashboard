@@ -109,3 +109,4 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
+    response = manager.get_instance_status(['i-01f733478fac52849'])
