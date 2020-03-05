@@ -1,8 +1,13 @@
-from flask import Blueprint, jsonify, request, abort
-from manager.aws import instance_manager, autoscale
+import logging
+
+import botocore
+from flask import Blueprint, abort, jsonify, request
+
 import manager
+from manager.aws import autoscale, instance_manager
 
 bp = Blueprint("workers", __name__, url_prefix='/workers')
+logger = logging.getLogger('manager')
 
 
 @bp.route('/cpu', methods=['GET'])
@@ -67,6 +72,7 @@ def workers():
                 'isSuccess': True,
                 'data': instance
             })
+
         elif request.method == 'DELETE':
             data = request.get_json()
             if data:
@@ -79,7 +85,7 @@ def workers():
         else:
             abort(405)
 
-    except Exception as e:
+    except botocore.exceptions.ClientError as e:
         print(e)
         return jsonify({
             'isSuccess': False,

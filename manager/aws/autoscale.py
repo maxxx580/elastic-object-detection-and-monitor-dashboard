@@ -13,7 +13,8 @@ class AutoScaler():
     def scale_up(self, k=1):
         instances = self.ec2_manager.launch_instance(k)
         for instance in instances:
-            self.starting_up_pool.add(instance[0]['InstanceId'])
+            self.starting_up_pool.add(instance['InstanceId'])
+
         return instances
 
     def scale_down(self, instance_id=None):
