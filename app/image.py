@@ -37,7 +37,6 @@ def upload():
     Returns:
         [JSON] -- [this endpoints return a json object indicates if upload succeeds ]
     """
-    logger = logging.getLogger()
     username = request.form["username"]
     password = request.form["password"]
     image = request.files.getlist("file")[0]
@@ -55,8 +54,6 @@ def upload():
         })
     except Exception:
         abort(500)
-    finally:
-        pass
 
 
 @bp.route("/api/profile", methods=["GET", "POST"])

@@ -11,14 +11,13 @@ class InstanceManager:
 
         self.cw = boto3.client('cloudwatch')
         self.ec2 = boto3.client('ec2')
-        self.cd = boto3.client('codedeploy')
         self.elb = boto3.client('elbv2')
 
         self.user_app_tag = 'ece1779-a2'
-        self.image_id = 'ami-baf632ac'
+        self.image_id = 'ami-0c1d9d416e381c787'
         self.instance_type = 't2.small'
-        self.key_pair = 'ece1779'
-        self.security_group = ['launch-wizard-2']
+        self.key_pair = 'keypair'
+        self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
             'Tags': [
@@ -94,8 +93,8 @@ class InstanceManager:
     def unregister_instances_elb(self, instance_ids):
         pass
 
-    def deploy_instances(self, instance_ids):
-        return instance_ids
+    def initilize_rds(self):
+        pass
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
@@ -105,6 +104,3 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-    instances = manager.get_instances()
-    cpu_usage = manager.get_instance_inbound_rate()
-    print(cpu_usage)
