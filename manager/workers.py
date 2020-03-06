@@ -21,7 +21,7 @@ def get_worker_cpu_usage():
             'timestamps': time_stamps,
             'datapoints': datapoints
         })
-    except Exception as e:
+    except botocore.exceptions.ClientError as e:
         print(e)
         return jsonify({
             'isSuccess': False,
@@ -39,7 +39,7 @@ def get_worker_inbount_traffic():
             'timestamps': time_stamps,
             'datapoints': datapoints
         })
-    except Exception as e:
+    except botocore.exceptions.ClientError as e:
         print(e)
         return jsonify({
             'isSuccess': False,
