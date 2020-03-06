@@ -1,5 +1,6 @@
 import atexit
 import logging
+import sys
 import time
 from datetime import datetime, timedelta
 
@@ -45,7 +46,11 @@ def create_app():
 
     @app.route('/terminate', methods=['POST'])
     def terminate():
-        pass
+        assert len(auto_scaler.worker_pool) == 0, 'Manager has already been terminated'
+        ec2_manager.terminate_instance(list(auto_scaler.worker_pool))
+        ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
+        sys.exit(0)
+
 
     def update_worker_pool_size():
         if len(worker_pool_size) > 30:
@@ -60,9 +65,10 @@ def create_app():
     scheduler.add_job(func=update_worker_pool_size,
                       trigger="interval", seconds=60)
     scheduler.add_job(func=auto_scaler.auto_update,
-                      trigger='interval', seconds=30)
+                      trigger='interval', seconds=10)
+    scheduler.add_job(func=auto_scaler.auto_scale,
+                      trigger='interval', seconds=60)
     scheduler.start()
 
     atexit.register(lambda: scheduler.shutdown())
-
     return app
