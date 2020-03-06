@@ -8,18 +8,28 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, redirect, render_template, url_for
 from flask_caching import Cache
 
+from flask_sqlalchemy import SQLAlchemy
 from manager import workers
 from manager.aws import autoscale, instance_manager
+from app.config import Config
 
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
 auto_scaler = autoscale.AutoScaler(ec2_manager)
 
 
+db = SQLAlchemy()
+
+
 def create_app():
     logger = logging.getLogger('manager')
     app = Flask(__name__, instance_relative_config=True)
     app.register_blueprint(workers.bp)
+    app.config.from_object(Config)
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
 
     @app.route('/')
     @app.route('/home')
@@ -72,3 +82,30 @@ def create_app():
 
     atexit.register(lambda: scheduler.shutdown())
     return app
+
+
+class UserModel(db.Model):
+    __tablename__ = 'Users'
+    # id = db.Column(db.Integer, unique=True, nullable=True)
+    # ,primary_key=True)  # Auto-increment should be default
+    username = db.Column(db.String(100), unique=True,
+                         primary_key=True, index=True)
+    password = db.Column(db.String(64), unique=False)
+
+
+class ImageModel(db.Model):
+    __tablename__ = 'Images'
+    id = db.Column(db.Integer, unique=True, nullable=True,
+                   primary_key=True)  # Auto-increment should be default
+    location = db.Column(db.String(200), nullable=True)
+    username = db.Column(db.String(200), db.ForeignKey(
+        "Users.username"), nullable=True)
+    currenttime = db.Column(db.String(45), nullable=True)
+    pictype = db.Column(db.String(45), nullable=True)
+
+
+class ManagerModel(db.Model):
+    __tablename__ = 'Managers'
+    username = db.Column(db.String(100), unique=True,
+                         primary_key=True, index=True)
+    password = db.Column(db.String(64), unique=False)
