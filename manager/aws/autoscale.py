@@ -55,3 +55,4 @@ class AutoScaler():
                 self.starting_up_pool.remove(iid+'')
             self.pool_lock.release()
             # TODO: register them to ELB
+
