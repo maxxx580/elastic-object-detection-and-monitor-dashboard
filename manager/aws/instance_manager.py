@@ -18,7 +18,7 @@ class InstanceManager:
         self.instance_type = 't2.small'
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
-            'arn:aws:elasticloadbalancing:us-east-1:992704428121:loadbalancer/app/ece1779-a2-elb/64c0f5ae94bf6e7f'
+            'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
@@ -127,4 +127,5 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-    response = manager.get_instance_status(['i-01f733478fac52849'])
+
+    manager.register_instances_elb("i-0a3dcb42ff5377a40")
