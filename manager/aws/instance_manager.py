@@ -47,6 +47,7 @@ class InstanceManager:
     def terminate_instance(self, instance_ids):
         assert all(isinstance(instance_id, str)
                    for instance_id in instance_ids)
+
         self.ec2.terminate_instances(InstanceIds=instance_ids, DryRun=False)
         return instance_ids
 
@@ -101,7 +102,7 @@ class InstanceManager:
                 {
                     'Id': instance_ids,
                     'Port': 5000
-                },
+                }
             ]
         )
 
@@ -112,7 +113,7 @@ class InstanceManager:
                 {
                     'Id': instance_ids,
                     'Port': 5000
-                },
+                }
             ]
         )
 
