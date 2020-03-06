@@ -17,6 +17,8 @@ class InstanceManager:
         self.image_id = 'ami-0c1d9d416e381c787'
         self.instance_type = 't2.small'
         self.key_pair = 'keypair'
+        self.TargetGroupArn = \
+            'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
@@ -93,10 +95,26 @@ class InstanceManager:
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
-        pass
+        response = self.elb.register_targets(
+            TargetGroupArn=self.TargetGroupArn,
+            Targets=[
+                {
+                    'Id': instance_ids,
+                    'Port': 5000
+                },
+            ]
+        )
 
     def unregister_instances_elb(self, instance_ids):
-        pass
+        response = self.elb.deregister_targets(
+            TargetGroupArn=self.TargetGroupArn,
+            Targets=[
+                {
+                    'Id': instance_ids,
+                    'Port': 5000
+                },
+            ]
+        )
 
     def initilize_rds(self):
         pass
@@ -109,4 +127,5 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-    response = manager.get_instance_status(['i-01f733478fac52849'])
+
+    manager.register_instances_elb("i-0a3dcb42ff5377a40")
