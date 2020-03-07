@@ -63,7 +63,7 @@ class AutoScaler():
             self.shuting_down_pool.difference_update(
                 set(instances_terminated))
             self.pool_lock.release
-            if not instances_terminated:
+            if len(instances_terminated) < 1:
                 return
             self.ec2_manager.unregister_instances_elb(
                 instances_terminated)
@@ -74,7 +74,7 @@ class AutoScaler():
 
             deployed_instances_id = {instance['id']
                                      for instance in instances_deployed}
-            if not deployed_instances_id:
+            if len(deployed_instances_id) < 1:
                 return
             self.pool_lock.acquire()
             for iid in deployed_instances_id:

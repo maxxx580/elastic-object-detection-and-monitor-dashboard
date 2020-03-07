@@ -19,7 +19,7 @@ class InstanceManager:
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
-        self.security_group = ['launch-wizard-1']
+        self.security_group = ['default','launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
             'Tags': [
@@ -29,7 +29,7 @@ class InstanceManager:
                 }]
         }]
         self.monitoring = {'Enabled': True}
-        self.tag_placement = {'AvailabilityZone': 'us-east-1a'}
+        self.tag_placement = {'AvailabilityZone': 'us-east-1c'}
 
     def launch_instance(self, k=1):
         # TODO use group or tag to differentiate worker from master
