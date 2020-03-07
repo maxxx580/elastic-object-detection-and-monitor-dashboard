@@ -102,7 +102,7 @@ class InstanceManager:
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': instance_ids,
+                    'Id': list(instance_ids)[0],
                     'Port': 5000
                 }
             ]
@@ -113,7 +113,7 @@ class InstanceManager:
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': instance_ids,
+                    'Id': list(instance_ids)[0],
                     'Port': 5000
                 }
             ]

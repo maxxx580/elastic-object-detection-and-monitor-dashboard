@@ -63,9 +63,10 @@ class AutoScaler():
             self.shuting_down_pool.difference_update(
                 set(instances_terminated))
             self.pool_lock.release
-            # TODO: de-register them to ELB
-            self.ec2_manager.unregister_instances_elb( instances_terminated)
-
+            if not instances_terminated:
+                return
+            self.ec2_manager.unregister_instances_elb(
+                instances_terminated)
 
         if len(self.starting_up_pool) > 0:
             instances_deployed = list(filter(
@@ -73,11 +74,12 @@ class AutoScaler():
 
             deployed_instances_id = {instance['id']
                                      for instance in instances_deployed}
+            if not deployed_instances_id:
+                return
             self.pool_lock.acquire()
             for iid in deployed_instances_id:
                 self.worker_pool.add(iid)
                 self.starting_up_pool.remove(iid+'')
             self.pool_lock.release()
-            # TODO: register them to ELB
             self.ec2_manager.register_instances_elb(
-                self, deployed_instances_id)
+                deployed_instances_id)
