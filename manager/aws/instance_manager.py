@@ -77,7 +77,8 @@ class InstanceManager:
             StartTime=datetime.utcnow() - timedelta(seconds=k * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='CPUUtilization',
-            Namespace='AWS/EC2',  # Unit='Percent',
+            Namespace='AWS/EC2',
+            Unit='Percent',
             Statistics=[statistics]
         )
 
@@ -90,7 +91,8 @@ class InstanceManager:
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='NetworkIn',
-            Namespace='AWS/EC2',  # Unit='Percent',
+            Namespace='AWS/EC2',
+            Unit='Percent',
             Statistics=[statistics]
         )
         return self._data_conversion_helper(response, statistics)
@@ -118,6 +120,9 @@ class InstanceManager:
         )
 
     def initilize_rds(self):
+        pass
+
+    def get_elb_public_dns(self):
         pass
 
     def _data_conversion_helper(self, response, statistics):
