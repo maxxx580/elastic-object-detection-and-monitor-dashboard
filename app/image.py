@@ -16,7 +16,7 @@ import app
 
 s3_client = boto3.client('s3')
 bp = Blueprint("image", __name__)
-BUCKET = "ece1779-a2-images"
+BUCKET = "ece1779-a2-pic"
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 # derive the paths to the YOLO weights and model configuration

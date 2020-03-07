@@ -19,7 +19,7 @@ class InstanceManager:
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
-        self.security_group = ['launch-wizard-1']
+        self.security_group = ['default','launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
             'Tags': [
@@ -29,7 +29,7 @@ class InstanceManager:
                 }]
         }]
         self.monitoring = {'Enabled': True}
-        self.tag_placement = {'AvailabilityZone': 'us-east-1a'}
+        self.tag_placement = {'AvailabilityZone': 'us-east-1c'}
 
     def launch_instance(self, k=1):
         # TODO use group or tag to differentiate worker from master
@@ -98,13 +98,17 @@ class InstanceManager:
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
+        print("###### registe #######")
+        print(instance_ids)
         response = self.elb.register_targets(
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': list(instance_ids)[0],
+
+                    'Id': instance_id,
                     'Port': 5000
                 }
+                for instance_id in list(instance_ids)
             ]
         )
 
@@ -113,13 +117,14 @@ class InstanceManager:
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': list(instance_ids)[0],
+                    'Id': instance_id,
                     'Port': 5000
                 }
+                for instance_id in list(instance_ids)
             ]
         )
 
-    def initilize_rds(self):
+    def initialize_rds(self):
         pass
 
     def get_elb_public_dns(self):

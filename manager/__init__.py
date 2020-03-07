@@ -3,8 +3,12 @@ import atexit
 import logging
 import sys
 import time
+
 import re
+
+import boto3
 from datetime import datetime, timedelta
+from sqlalchemy import desc
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, redirect, render_template, request, url_for, jsonify, session, g, Blueprint
@@ -137,6 +141,17 @@ def create_app():
             ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
 
         sys.exit(0)
+
+    @app.route('/clearall',methods=['DELETE'])
+    def clearall():
+        # s3 = boto3.resource('s3')
+        # bucket = s3.Bucket('ece1779-a2-images')
+        # bucket.objects.all().delete()
+        ManagerUserModel.query.delete()
+        db.session.commit()
+        ImageModel.query.delete()
+        db.session.commit()
+
 
     def login_required(view):
         """View decorator that redirects anonymous users to the login page."""
