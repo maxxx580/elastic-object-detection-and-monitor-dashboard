@@ -130,10 +130,12 @@ def create_app():
 
     @app.route('/terminate', methods=['POST'])
     def terminate():
-        assert len(
-            auto_scaler.worker_pool) == 0, 'Manager has already been terminated'
-        ec2_manager.terminate_instance(list(auto_scaler.worker_pool))
-        ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
+        assert (len(auto_scaler.worker_pool)+len(auto_scaler.starting_up_pool)) != 0, 'Manager has already been terminated'
+        if len(auto_scaler.worker_pool) >0:
+            ec2_manager.terminate_instance(list(auto_scaler.worker_pool))
+        if len(auto_scaler.starting_up_pool) >0:
+            ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
+
         sys.exit(0)
 
     def login_required(view):
