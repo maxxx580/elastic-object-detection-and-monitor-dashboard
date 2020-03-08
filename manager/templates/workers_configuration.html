@@ -105,7 +105,11 @@
             url: 'workers',
             data: [],
             success: (result) => {
-              alert('One instance created');
+              if (result["isSuccess"]) {
+                loadWorkerTable()
+              } else {
+                alert(result["message"]);
+              }
             }
           });
         });
@@ -116,7 +120,11 @@
             url: 'workers',
             data: [],
             success: (result) => {
-              alert('One instance terminated');
+              if (result["isSuccess"]) {
+                loadWorkerTable()
+              } else {
+                alert(result["message"]);
+              }
             }
           });
         });
@@ -142,7 +150,6 @@
             }
           });
         });
-
     });
   </script>
 

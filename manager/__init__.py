@@ -7,6 +7,7 @@ import time
 import re
 
 import boto3
+import threading
 from datetime import datetime, timedelta
 from sqlalchemy import desc
 
@@ -21,6 +22,7 @@ from manager.config import Config
 from manager import workers
 from manager.aws import autoscale, instance_manager
 
+lock = threading.Lock()
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
 auto_scaler = autoscale.AutoScaler(ec2_manager)
@@ -134,15 +136,16 @@ def create_app():
 
     @app.route('/terminate', methods=['POST'])
     def terminate():
-        assert (len(auto_scaler.worker_pool)+len(auto_scaler.starting_up_pool)) != 0, 'Manager has already been terminated'
-        if len(auto_scaler.worker_pool) >0:
+        assert (len(auto_scaler.worker_pool)+len(auto_scaler.starting_up_pool)
+                ) != 0, 'Manager has already been terminated'
+        if len(auto_scaler.worker_pool) > 0:
             ec2_manager.terminate_instance(list(auto_scaler.worker_pool))
-        if len(auto_scaler.starting_up_pool) >0:
+        if len(auto_scaler.starting_up_pool) > 0:
             ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
 
         sys.exit(0)
 
-    @app.route('/clearall',methods=['DELETE'])
+    @app.route('/clearall', methods=['DELETE'])
     def clearall():
         # s3 = boto3.resource('s3')
         # bucket = s3.Bucket('ece1779-a2-images')
@@ -151,7 +154,6 @@ def create_app():
         db.session.commit()
         ImageModel.query.delete()
         db.session.commit()
-
 
     def login_required(view):
         """View decorator that redirects anonymous users to the login page."""
@@ -177,21 +179,24 @@ def create_app():
         g.user = username
 
     def _update_worker_pool_size():
+        lock.acquire()
         if len(worker_pool_size) > 30:
             worker_pool_size.pop(0)
         worker_pool_size.append(
-            (len(auto_scaler.worker_pool), datetime.utcnow()))
+            (len(auto_scaler.worker_pool) + len(auto_scaler.starting_up_pool), datetime.utcnow()))
+        lock.release()
         logger.info(msg="[%s] updated worker pool; current worker pool size is %d" %
                     (str(datetime.now()), worker_pool_size[-1][0]))
 
     _update_worker_pool_size()
+    auto_scaler.scale_up()
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=_update_worker_pool_size,
                       trigger="interval", seconds=60)
     scheduler.add_job(func=auto_scaler.auto_update,
                       trigger='interval', seconds=10)
-    scheduler.add_job(func=auto_scaler.auto_scale,
-                      trigger='interval', seconds=60)
+    # scheduler.add_job(func=auto_scaler.auto_scale,
+    #                   trigger='interval', seconds=60)
     scheduler.start()
 
     atexit.register(lambda: scheduler.shutdown())

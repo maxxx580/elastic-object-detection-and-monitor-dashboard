@@ -19,7 +19,8 @@ class InstanceManager:
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
-        self.security_group = ['default','launch-wizard-1']
+        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:loadbalancer/app/ece1779/ad995928e73f7eb9'
+        self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
             'Tags': [
@@ -92,7 +93,6 @@ class InstanceManager:
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='NetworkIn',
             Namespace='AWS/EC2',
-            Unit='Percent',
             Statistics=[statistics]
         )
         return self._data_conversion_helper(response, statistics)
