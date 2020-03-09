@@ -13,6 +13,7 @@ class InstanceManager:
         self.ec2 = boto3.client('ec2')
         self.elb = boto3.client('elbv2')
 
+
         self.user_app_tag = 'ece1779-a2'
         self.image_id = 'ami-0c1d9d416e381c787'
         self.instance_type = 't2.small'
