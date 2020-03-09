@@ -20,6 +20,7 @@ class InstanceManager:
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
+        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:targetgroup/worker/f7269e70cd56ae73'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
@@ -30,10 +31,10 @@ class InstanceManager:
                 }]
         }]
         self.monitoring = {'Enabled': True}
-        self.tag_placement = {'AvailabilityZone': 'us-east-1a'}
+        self.tag_placement = {'AvailabilityZone': 'us-east-1c'}
 
-    def launch_instance(self, k=1):
-        # TODO use group or tag to differentiate worker from master
+    def launch_instances(self, k=1):
+        print("********* ec2 manager launching instances *****************")
         response = self.ec2.run_instances(ImageId=self.image_id,
                                           InstanceType=self.instance_type,
                                           KeyName=self.key_pair,
@@ -45,9 +46,11 @@ class InstanceManager:
                                           Placement=self.tag_placement)
         return response['Instances']
 
-    def terminate_instance(self, instance_ids):
+    def terminate_instances(self, instance_ids):
+        print("********* ec2 manager terminate instances *****************")
         assert all(isinstance(instance_id, str)
                    for instance_id in instance_ids)
+
         self.ec2.terminate_instances(InstanceIds=instance_ids, DryRun=False)
         return instance_ids
 
@@ -69,56 +72,92 @@ class InstanceManager:
 
         return response_restructured
 
-    def get_cpu_utilization(self):
-        # TODO: only calculate for deployed worker instances
+    def get_cpu_utilization(self, k=30):
         statistics = 'Average'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=k * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='CPUUtilization',
-            Namespace='AWS/EC2',  # Unit='Percent',
+            Namespace='AWS/EC2',
+            Unit='Percent',
             Statistics=[statistics]
         )
-
         return self._data_conversion_helper(response, statistics)
 
-    def get_instance_inbound_rate(self):
+    def get_elb_request_count(self):
         statistics = 'Sum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
-            MetricName='NetworkIn',
-            Namespace='AWS/EC2',  # Unit='Percent',
-            Statistics=[statistics]
+            MetricName='RequestCount',
+            Namespace='AWS/ApplicationELB',
+            Statistics=[statistics],
+            Dimensions=[
+                {
+                    'Name': 'LoadBalancer',
+                    'Value': 'app/ece1779/ad995928e73f7eb9'
+                },
+                {
+                    'Name': 'TargetGroup',
+                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
+                }
+            ]
+        )
+        return self._data_conversion_helper(response, statistics)
+
+    def get_elb_healthy_host_count(self):
+        statistics = 'Average'
+        response = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='HealthyHostCount',
+            Namespace='AWS/ApplicationELB',
+            Statistics=[statistics],
+            Dimensions=[
+                {
+                    'Name': 'LoadBalancer',
+                    'Value': 'app/ece1779/ad995928e73f7eb9'
+                },
+                {
+                    'Name': 'TargetGroup',
+                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
+                }
+            ]
         )
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
+        print("***********              registering instances          **************")
+        print(instance_ids)
         response = self.elb.register_targets(
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': instance_ids,
+                    'Id': instance_id,
                     'Port': 5000
-                },
+                }
+                for instance_id in list(instance_ids)
             ]
         )
+        return response
 
     def unregister_instances_elb(self, instance_ids):
+        print("***********              deregistering instances          **************")
+        print(instance_ids)
         response = self.elb.deregister_targets(
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-                    'Id': instance_ids,
+                    'Id': instance_id,
                     'Port': 5000
-                },
+                }
+                for instance_id in list(instance_ids)
             ]
         )
-
-    def initilize_rds(self):
-        pass
+        return response
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
@@ -128,5 +167,3 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-
-    manager.register_instances_elb("i-0a3dcb42ff5377a40")
