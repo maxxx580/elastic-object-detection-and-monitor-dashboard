@@ -16,6 +16,7 @@ class AutoScaler():
         self.ec2_manager = ec2_manager
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
+        self.MAX_NUMBER_OF_INSTANCES = 10
         atexit.register(lambda: self.scheduler.shutdown())
 
     def auto_scale(self):  # 2 MINUTES
@@ -36,20 +37,36 @@ class AutoScaler():
             print("decrease", decrease_pool)
 
     def scale_up(self, k=1):
+
+        current_instances = self.ec2_manager.get_instances(live_only=True)
+        k = min(self.MAX_NUMBER_OF_INSTANCES - len(current_instances), k)
+
+        if k == 0:
+            return []
+
         instances = self.ec2_manager.launch_instances(k)
+        instance_ids = [instance['InstanceId'] for instance in instances]
+
         self.scheduler.add_job(
-            func=lambda: self.ec2_manager.register_instances_elb(
-                [instance['InstanceId'] for instance in instances]),
+            func=lambda: self._configure_instances(instance_ids),
             trigger='date',
             run_date=datetime.datetime.now() + datetime.timedelta(seconds=120))
+
         return instances
 
     def scale_down(self, k=1):
-        instances = self.ec2_manager.get_instances(live_only=True)
 
-        assert len(instances) > k, 'k is more than number of instances'
+        instances = self.ec2_manager.get_instances(live_only=True)
+        assert k < len(instances), 'k is more than number of instances'
+
+        if k == 0:
+            return
         instances_to_terminated = [instance['InstanceId']
                                    for instance in instances[:k]]
 
         self.ec2_manager.unregister_instances_elb(instances_to_terminated)
         self.ec2_manager.terminate_instances(instances_to_terminated)
+
+    def _configure_instances(self, instance_ids):
+        self.ec2_manager.attach_instances_to_IAM_role(instance_ids)
+        self.ec2_manager.register_instances_elb(instance_ids)

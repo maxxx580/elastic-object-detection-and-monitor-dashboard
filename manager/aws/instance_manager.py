@@ -13,12 +13,13 @@ class InstanceManager:
         self.ec2 = boto3.client('ec2')
         self.elb = boto3.client('elbv2')
 
-        self.user_app_tag = 'ece1779-a2'
+        self.user_app_tag = 'ece1779-a2-worker'
         self.image_id = 'ami-0c1d9d416e381c787'
         self.instance_type = 't2.small'
         self.key_pair = 'keypair'
-        self.TargetGroupArn = \
-            'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
+        # rachel's elb
+        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
+        # eric's elb
         self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:targetgroup/worker/f7269e70cd56ae73'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
@@ -31,6 +32,18 @@ class InstanceManager:
         }]
         self.monitoring = {'Enabled': True}
         self.tag_placement = {'AvailabilityZone': 'us-east-1c'}
+        self.iam_profile = {
+            'Arn': 'arn:aws:iam::728815168568:instance-profile/ece1779-a2',
+            'Name': 'ece1779-a2'
+        }
+        self.elb_profile = {
+            'Name': 'LoadBalancer',
+            'Value': 'app/ece1779/ad995928e73f7eb9'
+        }
+        self.elb_target_profile = {
+            'Name': 'TargetGroup',
+            'Value': 'targetgroup/worker/f7269e70cd56ae73'
+        }
 
     def launch_instances(self, k=1):
         print("********* ec2 manager launching instances *****************")
@@ -44,6 +57,13 @@ class InstanceManager:
                                           Monitoring=self.monitoring,
                                           Placement=self.tag_placement)
         return response['Instances']
+
+    def attach_instances_to_IAM_role(self, instance_ids):
+        for instance_id in instance_ids:
+            self.ec2.associate_iam_instance_profile(
+                IamInstanceProfile=self.iam_profile,
+                InstanceId=instance_id
+            )
 
     def terminate_instances(self, instance_ids):
         print("********* ec2 manager terminate instances *****************")
@@ -59,16 +79,20 @@ class InstanceManager:
                 for instance_status in response['InstanceStatuses']]
 
     def get_instances(self, live_only=False):
-        response = self.ec2.describe_instances()
+        worker_instance_filter = {
+            'Name': 'tag:' + 'Name',
+            'Values': [self.user_app_tag]
+        }
+        response = self.ec2.describe_instances(
+            Filters=[worker_instance_filter])
         response_restructured = []
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
                 response_restructured.append(instance)
 
         if live_only:
-            return list(filter(lambda x: x['State']['Name'] in ['pending', 'running'],
-                               response_restructured))
-
+            response_restructured = list(filter(lambda x: x['State']['Name'] in ['pending', 'running', 'shutting-down'],
+                                                response_restructured))
         return response_restructured
 
     def get_cpu_utilization(self, k=30):
@@ -93,16 +117,7 @@ class InstanceManager:
             MetricName='RequestCount',
             Namespace='AWS/ApplicationELB',
             Statistics=[statistics],
-            Dimensions=[
-                {
-                    'Name': 'LoadBalancer',
-                    'Value': 'app/ece1779/ad995928e73f7eb9'
-                },
-                {
-                    'Name': 'TargetGroup',
-                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
-                }
-            ]
+            Dimensions=[self.elb_profile, self.elb_target_profile]
         )
         return self._data_conversion_helper(response, statistics)
 
@@ -115,16 +130,7 @@ class InstanceManager:
             MetricName='HealthyHostCount',
             Namespace='AWS/ApplicationELB',
             Statistics=[statistics],
-            Dimensions=[
-                {
-                    'Name': 'LoadBalancer',
-                    'Value': 'app/ece1779/ad995928e73f7eb9'
-                },
-                {
-                    'Name': 'TargetGroup',
-                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
-                }
-            ]
+            Dimensions=[self.elb_profile, self.elb_target_profile]
         )
         return self._data_conversion_helper(response, statistics)
 
