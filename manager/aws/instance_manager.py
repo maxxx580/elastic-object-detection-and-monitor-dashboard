@@ -91,14 +91,24 @@ class InstanceManager:
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
-            MetricName='NetworkIn',
-            Namespace='AWS/EC2',
-            Statistics=[statistics]
+            MetricName='RequestCount',
+            Namespace='AWS/ApplicationELB',
+            Statistics=[statistics],
+            Dimensions=[
+                {
+                    'Name': 'LoadBalancer',
+                    'Value': 'app/ece1779/ad995928e73f7eb9'
+                },
+                {
+                    'Name': 'TargetGroup',
+                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
+                }
+            ]
         )
+        print(response)
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
-
         print(
             "***********                 registering instances               **************")
         print(instance_ids)
@@ -135,3 +145,4 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
+    response = manager.get_instance_inbound_rate()
