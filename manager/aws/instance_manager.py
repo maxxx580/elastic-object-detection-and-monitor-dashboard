@@ -19,7 +19,8 @@ class InstanceManager:
         self.key_pair = 'keypair'
         self.TargetGroupArn = \
             'arn:aws:elasticloadbalancing:us-east-1:992704428121:targetgroup/ece1779-a2-target-group/0feaa7080487b1c6'
-        self.security_group = ['default','launch-wizard-1']
+        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:targetgroup/worker/f7269e70cd56ae73'
+        self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
             'Tags': [
@@ -31,8 +32,8 @@ class InstanceManager:
         self.monitoring = {'Enabled': True}
         self.tag_placement = {'AvailabilityZone': 'us-east-1c'}
 
-    def launch_instance(self, k=1):
-        # TODO use group or tag to differentiate worker from master
+    def launch_instances(self, k=1):
+        print("********* ec2 manager launching instances *****************")
         response = self.ec2.run_instances(ImageId=self.image_id,
                                           InstanceType=self.instance_type,
                                           KeyName=self.key_pair,
@@ -44,7 +45,8 @@ class InstanceManager:
                                           Placement=self.tag_placement)
         return response['Instances']
 
-    def terminate_instance(self, instance_ids):
+    def terminate_instances(self, instance_ids):
+        print("********* ec2 manager terminate instances *****************")
         assert all(isinstance(instance_id, str)
                    for instance_id in instance_ids)
 
@@ -70,7 +72,6 @@ class InstanceManager:
         return response_restructured
 
     def get_cpu_utilization(self, k=30):
-        # TODO: only calculate for deployed worker instances
         statistics = 'Average'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
@@ -92,25 +93,26 @@ class InstanceManager:
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='NetworkIn',
             Namespace='AWS/EC2',
-            Unit='Percent',
             Statistics=[statistics]
         )
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
-        print("###### registe #######")
+
+        print(
+            "***********                 registering instances               **************")
         print(instance_ids)
         response = self.elb.register_targets(
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
                 {
-
                     'Id': instance_id,
                     'Port': 5000
                 }
                 for instance_id in list(instance_ids)
             ]
         )
+        return response
 
     def unregister_instances_elb(self, instance_ids):
         response = self.elb.deregister_targets(
@@ -123,12 +125,7 @@ class InstanceManager:
                 for instance_id in list(instance_ids)
             ]
         )
-
-    def initialize_rds(self):
-        pass
-
-    def get_elb_public_dns(self):
-        pass
+        return response
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
@@ -138,5 +135,3 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-
-    manager.register_instances_elb("i-0a3dcb42ff5377a40")
