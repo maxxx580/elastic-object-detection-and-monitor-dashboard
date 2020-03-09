@@ -46,7 +46,7 @@
 
   <script>
     $(document).ready(() => {
-        $.ajax({url: "/workers/pool_sizes", success: (result) => {
+        $.ajax({url: "/workers/host_count", success: (result) => {
             var timestamps = result.timestamps.map((ele) => {
                 var d = new Date(ele);
                 return d.getHours() + ":" + d.getMinutes();

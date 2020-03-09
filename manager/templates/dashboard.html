@@ -53,7 +53,7 @@
 
   <script>
     $(document).ready(() => {
-        $.ajax({url: "/workers/traffic", success: (result) => {
+        $.ajax({url: "/workers/request_count", success: (result) => {
             if (result.isSuccess) {
                 var timestamps = timeConverter(result.timestamps);
                 var ctx_cpu = document.getElementById('Inbound_Request').getContext('2d');

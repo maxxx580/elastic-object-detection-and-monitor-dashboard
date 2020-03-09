@@ -82,10 +82,9 @@ class InstanceManager:
             Unit='Percent',
             Statistics=[statistics]
         )
-
         return self._data_conversion_helper(response, statistics)
 
-    def get_instance_inbound_rate(self):
+    def get_elb_request_count(self):
         statistics = 'Sum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
@@ -105,12 +104,32 @@ class InstanceManager:
                 }
             ]
         )
-        print(response)
+        return self._data_conversion_helper(response, statistics)
+
+    def get_elb_healthy_host_count(self):
+        statistics = 'Average'
+        response = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='HealthyHostCount',
+            Namespace='AWS/ApplicationELB',
+            Statistics=[statistics],
+            Dimensions=[
+                {
+                    'Name': 'LoadBalancer',
+                    'Value': 'app/ece1779/ad995928e73f7eb9'
+                },
+                {
+                    'Name': 'TargetGroup',
+                    'Value': 'targetgroup/worker/f7269e70cd56ae73'
+                }
+            ]
+        )
         return self._data_conversion_helper(response, statistics)
 
     def register_instances_elb(self, instance_ids):
-        print(
-            "***********                 registering instances               **************")
+        print("***********              registering instances          **************")
         print(instance_ids)
         response = self.elb.register_targets(
             TargetGroupArn=self.TargetGroupArn,
@@ -125,6 +144,8 @@ class InstanceManager:
         return response
 
     def unregister_instances_elb(self, instance_ids):
+        print("***********              deregistering instances          **************")
+        print(instance_ids)
         response = self.elb.deregister_targets(
             TargetGroupArn=self.TargetGroupArn,
             Targets=[
@@ -145,4 +166,3 @@ class InstanceManager:
 
 if __name__ == "__main__":
     manager = InstanceManager()
-    response = manager.get_instance_inbound_rate()

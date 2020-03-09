@@ -29,11 +29,11 @@ def get_worker_cpu_usage():
         })
 
 
-@bp.route('/traffic', methods=['GET'])
+@bp.route('/request_count', methods=['GET'])
 def get_worker_inbount_traffic():
     try:
-        inbound_traffic = manager.ec2_manager.get_instance_inbound_rate()
-        time_stamps, datapoints = data_convert_helper(inbound_traffic)
+        request_count = manager.ec2_manager.get_elb_request_count()
+        time_stamps, datapoints = data_convert_helper(request_count)
         return jsonify({
             'isSuccess': True,
             'timestamps': time_stamps,
@@ -47,14 +47,22 @@ def get_worker_inbount_traffic():
         })
 
 
-@bp.route('/pool_sizes', methods=['GET'])
+@bp.route('/host_count', methods=['GET'])
 def get_worker_pool_size():
-    sizes = [s[0] for s in manager.worker_pool_size]
-    timestamps = [t[1] for t in manager.worker_pool_size]
-    return jsonify({
-        'sizes': sizes,
-        'timestamps': timestamps
-    })
+    try:
+        host_count = manager.ec2_manager.get_elb_healthy_host_count()
+        time_stamps, datapoints = data_convert_helper(host_count)
+        return jsonify({
+            'isSuccess': True,
+            'sizes': datapoints,
+            'timestamps': time_stamps
+        })
+    except botocore.exceptions.ClientError as e:
+        print(e)
+        return jsonify({
+            'isSuccess': False,
+            'message': e.args
+        })
 
 
 @bp.route('/', methods=['GET', 'POST', 'DELETE'])
