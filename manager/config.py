@@ -11,8 +11,7 @@ def get_instanceId():
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'ece1779-a2-secretkey'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') \
-        or 'mysql+pymysql://admin:password@ece1779test.cb9p4b3u80au.us-east-1.rds.amazonaws.com:3306/ece1779test'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://admin:password@ece1779test.cb9p4b3u80au.us-east-1.rds.amazonaws.com:3306/ece1779test'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = basedir + '/static/uploaded_images'
     ALLOWED_EXTENSIONS = ["bmp", "pbm", "pgm", "ppm", "sr",

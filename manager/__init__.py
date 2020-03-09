@@ -1,46 +1,43 @@
-import functools
 import atexit
+import functools
 import logging
-import sys
-import time
-
 import re
-
-import boto3
+import sys
 import threading
+import time
 from datetime import datetime, timedelta
-from sqlalchemy import desc
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, redirect, render_template, request, url_for, jsonify, session, g, Blueprint
-from flask_caching import Cache
-from flask_sqlalchemy import SQLAlchemy
-
 
 import bcrypt
-from manager.config import Config
+import boto3
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import (Blueprint, Flask, g, jsonify, redirect, render_template,
+                   request, session, url_for)
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc
+
 from manager import workers
 from manager.aws import autoscale, instance_manager
+from manager.config import Config
 
 lock = threading.Lock()
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
 auto_scaler = autoscale.AutoScaler(ec2_manager)
 db = SQLAlchemy()
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 bp = Blueprint('auth', __name__)
 
 
 def create_app():
-    logger = logging.getLogger('manager')
     app = Flask(__name__, instance_relative_config=True)
-    app.register_blueprint(workers.bp)
     app.config.from_object(Config)
     db.init_app(app)
-
     with app.app_context():
         db.create_all()
 
+    app.register_blueprint(workers.bp)
     @app.route('/')
     @app.route('/home')
     @app.route('/index')
@@ -136,13 +133,9 @@ def create_app():
 
     @app.route('/terminate', methods=['POST'])
     def terminate():
-        assert (len(auto_scaler.worker_pool)+len(auto_scaler.starting_up_pool)
-                ) != 0, 'Manager has already been terminated'
-        if len(auto_scaler.worker_pool) > 0:
-            ec2_manager.terminate_instance(list(auto_scaler.worker_pool))
-        if len(auto_scaler.starting_up_pool) > 0:
-            ec2_manager.terminate_instance(list(auto_scaler.starting_up_pool))
-
+        instances = ec2_manager.get_instances(live_only=True)
+        instance_ids = [instance['InstanceId'] for instance in instances]
+        ec2_manager.terminate_instances(instance_ids)
         sys.exit(0)
 
     @app.route('/clearall', methods=['DELETE'])
@@ -178,26 +171,8 @@ def create_app():
 
         g.user = username
 
-    def _update_worker_pool_size():
-        lock.acquire()
-        if len(worker_pool_size) > 30:
-            worker_pool_size.pop(0)
-        worker_pool_size.append(
-            (len(auto_scaler.worker_pool) + len(auto_scaler.starting_up_pool), datetime.utcnow()))
-        lock.release()
-        logger.info(msg="[%s] updated worker pool; current worker pool size is %d" %
-                    (str(datetime.now()), worker_pool_size[-1][0]))
-
-    _update_worker_pool_size()
-    auto_scaler.scale_up()
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=_update_worker_pool_size,
-                      trigger="interval", seconds=60)
-    scheduler.add_job(func=auto_scaler.auto_update,
-                      trigger='interval', seconds=10)
-    # scheduler.add_job(func=auto_scaler.auto_scale,
-    #                   trigger='interval', seconds=60)
-    scheduler.start()
+    scheduler.add_job(func=auto_scaler.auto_scale,
+                      trigger='interval', seconds=60)
 
     atexit.register(lambda: scheduler.shutdown())
     return app
@@ -216,7 +191,7 @@ def authenticate(username, password):
                           user.password.encode('utf-8')), "invalid credential"
 
 
-class ManagerUserModel(db.Model):
+class UserModel(db.Model):
     __tablename__ = 'Users'
     username = db.Column(db.String(100), unique=True,
                          primary_key=True, index=True)
@@ -234,7 +209,7 @@ class ImageModel(db.Model):
     pictype = db.Column(db.String(45), nullable=True)
 
 
-class ManagerManagerUserModel(db.Model):
+class ManagerUserModel(db.Model):
     __tablename__ = 'AdminUsers'
     username = db.Column(db.String(100), unique=True,
                          primary_key=True, index=True)

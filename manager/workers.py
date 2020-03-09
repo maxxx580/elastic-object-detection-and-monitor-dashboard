@@ -74,11 +74,7 @@ def workers():
             })
 
         elif request.method == 'DELETE':
-            data = request.get_json()
-            if data:
-                manager.auto_scaler.scale_down(data['instance_id'])
-            else:
-                manager.auto_scaler.scale_down()
+            manager.auto_scaler.scale_down()
             return jsonify({
                 'isSuccess': True,
             })
