@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Manager Application User Registration</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>  
+    <script src="http://malsup.github.com/jquery.form.js"></script> 
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+</head>
+    <body>
+        <div class="card bg-light">
+            <article class="card-body mx-auto" style="max-width: 400px;">
+                <h4 class="card-title mt-3 text-center">Create Account</h4>
+                <p class="text-center">Get started with your free account</p>
+                <p class="divider-text"><span class="bg-light"></span></p>
+                <form id="registerForm" action="/register">
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-user"></i> </span></div>
+                        <input name="username" class="form-control" placeholder="Username" type="text" required/>
+                    </div>
+                    <div class="form-group input-group">
+                        <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
+                        <input name="password" class="form-control" placeholder="Create password" type="password" required/>
+                    </div> 
+                                            
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block"> Create Account  </button>
+                    </div> 
+                    <p class="text-center">Have an account? <a href="login">Log In</a> </p>                                                                 
+                </form>
+            </article>
+        </div> 
+
+        <br><br>
+        <article class="bg-secondary mb-3">  
+        <div class="card-body text-center">
+            <h3 class="text-white mt-3">University of Toronto</h3>
+        <p class="h5 text-white">ECE1779 Cloud Computing <br> Project 2</p><br>
+        </div>
+        <br><br>
+        </article>
+
+  </body>
+  <script>
+    $(document).ready(() => {
+        $('#registerForm')
+            .ajaxForm({
+                url : "register",
+                dataType : "json",
+                type: "POST",
+                success : function (response) {
+                    if (response['isSuccess']) {
+                        window.location.replace(response["url"]);
+                    } else {
+                        alert(response['message'])
+                    }
+                }
+            });
+    });
+  </script>
+
+  <style>
+      .divider-text {
+        position: relative;
+        text-align: center;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .divider-text span {
+        padding: 7px;
+        font-size: 12px;
+        position: relative;   
+        z-index: 2;
+    }
+    .divider-text:after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        border-bottom: 1px solid #ddd;
+        top: 55%;
+        left: 0;
+        z-index: 1;
+    }
+
+    .btn-facebook {
+        background-color: #405D9D;
+        color: #fff;
+    }
+    .btn-twitter {
+        background-color: #42AEEC;
+        color: #fff;
+    }
+  </style>
+
+</html>

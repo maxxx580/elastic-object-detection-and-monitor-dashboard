@@ -7,7 +7,7 @@ logging.basicConfig()
 logging.root.setLevel(logging.NOTSET)
 logging.basicConfig(level=logging.NOTSET)
 
-logging.getLogger('boto').setLevel(logging.INFO)
+logging.getLogger('boto').setLevel(logging.CRITICAL)
 logging.getLogger('manager').setLevel(logging.INFO)
 
 manager_app = create_app()
