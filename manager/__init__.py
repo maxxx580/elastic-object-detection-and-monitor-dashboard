@@ -3,7 +3,6 @@ import functools
 import logging
 import re
 import sys
-import threading
 import time
 from datetime import datetime, timedelta
 
@@ -15,20 +14,18 @@ from flask import (Blueprint, Flask, g, jsonify, redirect, render_template,
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, update
 
-from manager import workers
+from manager import auth, workers
 from manager.aws import autoscale, instance_manager
 from manager.config import Config
 
-lock = threading.Lock()
-worker_pool_size = []
+from .auth import login_required
+
 ec2_manager = instance_manager.InstanceManager()
 auto_scaler = autoscale.AutoScaler(
     ec2_manager, upper_threshold=70, lower_threshold=30, ideal_cpu=50)
 db = SQLAlchemy()
 scheduler = BackgroundScheduler()
 scheduler.start()
-
-bp = Blueprint('auth', __name__)
 
 
 def create_app():
@@ -39,10 +36,12 @@ def create_app():
         db.create_all()
 
     app.register_blueprint(workers.bp)
+    app.register_blueprint(auth.bp)
     @app.route('/')
     @app.route('/home')
     @app.route('/index')
     @app.route('/dashboard')
+    @login_required
     def dashboard():
         """[summary]
         this endpoint renders index page (dashboard view)
@@ -52,6 +51,7 @@ def create_app():
         return render_template('dashboard.html')
 
     @app.route('/workers_dashboard')
+    @login_required
     def workers_dashboard():
         """[summary] this endpoint renders the workers dashboard view
 
@@ -61,6 +61,7 @@ def create_app():
         return render_template('workers_dashboard.html')
 
     @app.route('/workers_configuration')
+    @login_required
     def worker_configuration():
         """[summary] this endpoint renders the worker configuration view
 
@@ -72,121 +73,13 @@ def create_app():
     @app.route('/autoscale_policy')
     def autoscale_policy():
         """[summary] this endpoint renders the auto-scale policy page
-
         Returns:
             [type] -- [description] html for auto-scale policy
         """
         return render_template('autoscale_policy.html')
 
-    @app.route('/register', methods=['GET', 'POST'])
-    def register():
-        """[summary] this endpoint accepts GET and POST request. 
-        Given a GET request, this endpoint renders the register view. 
-        Given a POST request, this endpoint creates a new user for manager app
-
-        Returns:
-            [type] -- [description] html view for registration view given GET request.
-            json object given POST request
-            {
-                isSuccess: boolean indecating if a user is created successfully,
-                url: url to login view given successful user creation,
-                message: error message if applicable
-            }
-        """
-        if request.method == 'GET':
-            return render_template('register.html')
-        try:
-
-            username = request.form['username']
-            password = request.form['password']
-
-            assert username is not None, "Please enter username"
-            assert password is not None, "Please enter password"
-
-            result_name = r'^[A-Za-z0-9._-]{2,100}$'
-            result_password = r'^.{6,}$'
-
-            assert re.match(result_name, username, re.M | re.I)
-            "Username should have 2 to 100 characters, and only contains letter, number, underline and dash."
-            assert re.match(result_password, password)
-            "Password should have 6 to 18 characters"
-
-            password = password.encode('utf-8')
-
-            user = ManagerUserModel.query.filter_by(username=username).first()
-            assert user is None, "Username exists"
-
-            salt = bcrypt.gensalt()
-
-            pw_hashed = bcrypt.hashpw(password, salt)
-
-            new_user = ManagerUserModel(
-                username=username, password=pw_hashed)
-            db.session.add(new_user)
-
-            return jsonify({
-                'isSuccess': True,
-                'url': url_for('login')
-            })
-
-        except AssertionError as e:
-            return jsonify({
-                'isSuccess': False,
-                'message': e.args
-            })
-
-    @app.route('/login', methods=['GET', 'POST'])
-    def login():
-        """[summary] this endpoint accepts GET and POST requests.
-        Given a GET request, this endpoint renders the login view.
-        Given a POST request, this endpoint authenticates log in attempts. 
-
-        Returns:
-            [type] -- [description] this endpoint renders login view given a GET request.
-            this endpoint return json object given POST request
-            {
-                isSuccess: boolean indecating if a user authentication is successful,
-                url: url to dashboard view given successful user authentication,
-                message: error message if applicable
-            }
-        """
-        if request.method == 'GET':
-            return render_template('login.html')
-
-        try:
-
-            username = request.form['username']
-            password = request.form['password']
-
-            authenticate(username, password)
-
-            session.clear()
-            session.permanent = True
-
-            session['username'] = username
-
-            return jsonify({
-                'isSuccess': True,
-                'url': url_for('dashboard')
-            })
-
-        except AssertionError as e:
-            return jsonify({
-                'isSuccess': False,
-                'message': e.args
-            })
-
-    @app.route('/logout', methods=['POST'])
-    def logout():
-        """[summary] this endpoint accepts a POST request and logs out an user
-
-        Returns:
-            [type] -- [description] html for login view
-        """
-        session.clear()
-        return render_template('logint.html')
-
     @app.route('/terminate', methods=['POST'])
+    @login_required
     def terminate():
         """[summary] this endpoint accepts a POST request. It terminates all worker instances and 
         the manager application itself.
@@ -197,6 +90,7 @@ def create_app():
         sys.exit(0)
 
     @app.route('/clearall', methods=['DELETE'])
+    @login_required
     def clearall():
         s3_clear = boto3.resource('s3')
         bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
@@ -207,10 +101,6 @@ def create_app():
         db.session.commit()
         ImageModel.query.delete()
         db.session.commit()
-
-        return jsonify({
-            'isSuccess': True
-        })
 
     @app.route('/submitscale', methods=['POST'])
     def submitscale():
@@ -247,47 +137,14 @@ def create_app():
                 'message': e.args
             })
 
-    def login_required(view):
-        """View decorator that redirects anonymous users to the login page."""
-
-        @functools.wraps(view)
-        def wrapped_view(**kwargs):
-            logger = logging.getLogger()
-            if g.user is None:
-                logger.info("user yet logged in, redirecting log-in page")
-                return redirect(url_for("user.login"))
-            logger.info('user already logged in')
-            return view(**kwargs)
-        return wrapped_view
-
-    @bp.before_app_request
-    def load_logged_in_user():
-
-        username = session.get('username')
-
-        if username is None:
-            g.user = None
-
-        g.user = username
-
     scheduler.add_job(func=auto_scaler.auto_scale,
                       trigger='interval', seconds=60)
 
     atexit.register(lambda: scheduler.shutdown())
+
+    auto_scaler.scale_up()
+
     return app
-
-
-def authenticate(username, password):
-
-    assert username is not None, "invalid username"
-    assert password is not None, "invalid password"
-
-    user = ManagerUserModel.query.filter_by(
-        username=username).first()
-
-    assert user is not None, "invalid credential"
-    assert bcrypt.checkpw(password.encode('utf-8'),
-                          user.password.encode('utf-8')), "invalid credential"
 
 
 class UserModel(db.Model):
