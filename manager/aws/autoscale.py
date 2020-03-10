@@ -8,12 +8,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import manager
 from manager.aws import autoscale, instance_manager
 
+
 class AutoScaler():
     """[summary]
         this class contains auto-scaling policy to provision worker instance pool.
     """
 
-    def __init__(self, ec2_manager, upper_threshold, lower_threshold, ideal_cpu ):
+    def __init__(self, ec2_manager, upper_threshold, lower_threshold, ideal_cpu):
         self.ec2_manager = ec2_manager
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
@@ -23,7 +24,14 @@ class AutoScaler():
         self.ideal_cpu = 50
         atexit.register(lambda: self.scheduler.shutdown())
 
-    def setPolicy(self,upper_threshold, lower_threshold, ideal_cpu):
+    def set_policy(self, upper_threshold, lower_threshold, ideal_cpu):
+        """[summary]
+
+        Arguments:
+            upper_threshold {[type]} -- [description]
+            lower_threshold {[type]} -- [description]
+            ideal_cpu {[type]} -- [description]
+        """
         self.upper_threshold = upper_threshold
         self.lower_threshold = lower_threshold
         self.ideal_cpu = ideal_cpu
@@ -44,7 +52,8 @@ class AutoScaler():
             print("increase", increase_pool)
 
         if cpu_avg <= self.lower_threshold:
-            decrease_pool = int(len(instances) - len(instances)*cpu_avg/self.ideal_cpu)
+            decrease_pool = int(
+                len(instances) - len(instances)*cpu_avg/self.ideal_cpu)
             self.scale_down(k=decrease_pool)
             print("decrease", decrease_pool)
 
@@ -82,7 +91,7 @@ class AutoScaler():
             k {int} -- [description] the number of instances to terminate(default: {1})
         """
         instances = self.ec2_manager.get_instances(alive=True)
-        assert k < len(instances), 'k is more than number of instances'
+        k = min(len(instances)-1, k)
 
         if k == 0:
             return

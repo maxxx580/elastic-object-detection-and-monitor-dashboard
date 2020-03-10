@@ -123,8 +123,8 @@ def create_app():
                 scale_policy.ideal_cpu = ideal_cpu
                 db.session.commit()
 
-            auto_scaler.setPolicy(upper_threshold=upper_threshold,
-                                  lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
+            auto_scaler.set_policy(upper_threshold=upper_threshold,
+                                   lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
 
             return jsonify({
                 'isSuccess': True,
@@ -159,7 +159,7 @@ class ImageModel(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=True,
                    primary_key=True)
     location = db.Column(db.String(200), nullable=True)
-    username = db.Column(db.String(200), db.ForeignKey(
+    username = db.Column(db.String(100), db.ForeignKey(
         "Users.username"), nullable=True)
     currenttime = db.Column(db.String(45), nullable=True)
     pictype = db.Column(db.String(45), nullable=True)
