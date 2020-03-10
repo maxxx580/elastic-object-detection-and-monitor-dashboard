@@ -8,19 +8,19 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-    <title>Worker Dashboard</title>
+    <title>Auto-scale Policy</title>
         <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>  
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
   </head>
 
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Manager Application</a>
+        <a class="navbar-brand" href="#">Auto-scale Policy</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -29,74 +29,60 @@
             <li class="nav-item">
                 <a class="nav-link" href="/dashboard">Dashboard </a>
             </li>
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a class="nav-link" href="workers_dashboard">Number of workers</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="workers_configuration">Configuration</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
                 <a class="nav-link" href="autoscale_policy">Auto-scale Policy</a>
             </li>
             </ul>
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
         </div>
     </nav>
-    <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-        <canvas id="workers" height="500vw" width="600vw"></canvas>
-    </div>
-</body>
 
-  <script>
+    <form id="policyForm" action="/submitscale" method="POST">
+        <div class="form-group input-group">
+            <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-user"></i> </span></div>
+            <input name="upper-threshold" class="form-control" placeholder="upper-threshold" type="text" required/>
+        </div>
+        <div class="form-group input-group">
+            <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
+            <input name="lower-threshold" class="form-control" placeholder="lower-threshold" type="text" required/>
+        </div>
+
+        <div class="form-group input-group">
+            <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
+            <input name="ideal-cpu" class="form-control" placeholder="ideal-cpu" type="text" required/>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-block"> Submit</button>
+        </div>
+    </form>
+
+<script>
     $(document).ready(() => {
-        $.ajax({url: "/workers/host_count", success: (result) => {
-            var timestamps = result.timestamps.map((ele) => {
-                var d = new Date(ele);
-                return d.getHours() + ":" + d.getMinutes();
-            });
-            var ctx_pool_size = document.getElementById('workers').getContext('2d');
-            var myChart = new Chart(ctx_pool_size, {
-                type: 'line',
-                data: {
-                    labels: timestamps,
-                    datasets: [{
-                        label: 'Inbound Request',
-                        data: result.datapoints,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: 'Number of works in the past 30 minutes'
-                    },
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            left: 50,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    scales: {
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true
-                            }
-                        }]
+        $('#policyForm')
+            .ajaxForm({
+                url : "submitscale",
+                dataType : "json",
+                type: "POST",
+                success : function (response) {
+                    if (response['isSuccess']) {
+                        window.location.replace(response["url"]);
+                    } else {
+                        alert(response['message'])
                     }
                 }
             });
-        }});
     });
+
   </script>
 
+</body>
 </html>
+
+

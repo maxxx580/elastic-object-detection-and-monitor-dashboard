@@ -35,10 +35,15 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/workers_configuration">Configuration</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="autoscale_policy">Auto-scale Policy</a>
+            </li>
+
             </ul>
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
         </div>
     </nav>
+    <h3>DNS Name: ece1779-243010613.us-east-1.elb.amazonaws.com</h3>
     <div class="container-fluid col-8">
       <caption><p class="h3">All Instances</p></caption>
       <table id='instance_table' class="table table-striped">
@@ -135,7 +140,8 @@
             url: 'clearall',
             data: [],
             success: (result) => {
-              alert('All data cleared');
+                loadWorkerTable()
+                alert('All data cleared');
             }
           });
         });

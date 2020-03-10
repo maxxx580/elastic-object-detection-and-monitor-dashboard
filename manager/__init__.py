@@ -13,7 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask import (Blueprint, Flask, g, jsonify, redirect, render_template,
                    request, session, url_for)
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import desc
+from sqlalchemy import desc, update
 
 from manager import workers
 from manager.aws import autoscale, instance_manager
@@ -22,7 +22,7 @@ from manager.config import Config
 lock = threading.Lock()
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
-auto_scaler = autoscale.AutoScaler(ec2_manager)
+auto_scaler = autoscale.AutoScaler(ec2_manager,upper_threshold=70,lower_threshold=30,ideal_cpu=50)
 db = SQLAlchemy()
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -36,6 +36,8 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
+
+
 
     app.register_blueprint(workers.bp)
     @app.route('/')
@@ -67,6 +69,15 @@ def create_app():
             [type] -- [description] html for worker configuration view
         """
         return render_template('workers_configuration.html')
+
+    @app.route('/autoscale_policy')
+    def autoscale_policy():
+        """[summary] this endpoint renders the auto-scale policy page
+
+        Returns:
+            [type] -- [description] html for auto-scale policy
+        """
+        return render_template('autoscale_policy.html')
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -113,7 +124,6 @@ def create_app():
             new_user = ManagerUserModel(
                 username=username, password=pw_hashed)
             db.session.add(new_user)
-            db.session.commit()
 
             return jsonify({
                 'isSuccess': True,
@@ -200,7 +210,42 @@ def create_app():
         db.session.commit()
 
         return jsonify({
-                'isSuccess': True
+                'isSuccess': True,
+                'url': url_for('workers_configuration')
+            })
+
+    @app.route('/submitscale', methods=['POST'])
+    def submitscale():
+        try:
+            upper_threshold = request.form['upper-threshold']
+            lower_threshold = request.form['lower-threshold']
+            ideal_cpu = request.form['ideal-cpu']
+
+
+            scale_policy = AutoscalePolicyModel.query.first()
+
+            if(scale_policy is None):
+                new_policy = AutoscalePolicyModel(upper_threshold=upper_threshold,lower_threshold=lower_threshold,ideal_cpu=ideal_cpu)
+                db.session.add(new_policy)
+                db.session.commit()
+
+            else:
+                scale_policy.upper_threshold = upper_threshold
+                scale_policy.lower_threshold = lower_threshold
+                scale_policy.ideal_cpu = ideal_cpu
+                db.session.commit()
+
+            auto_scaler.setPolicy(upper_threshold=upper_threshold,lower_threshold=lower_threshold,ideal_cpu=ideal_cpu)
+
+            return jsonify({
+                'isSuccess': True,
+                'url': url_for('autoscale_policy')
+            })
+
+        except AssertionError as e:
+            return jsonify({
+                'isSuccess': False,
+                'message': e.args
             })
 
     def login_required(view):
@@ -246,6 +291,9 @@ def authenticate(username, password):
                           user.password.encode('utf-8')), "invalid credential"
 
 
+
+
+
 class UserModel(db.Model):
     __tablename__ = 'Users'
     username = db.Column(db.String(100), unique=True,
@@ -269,3 +317,12 @@ class ManagerUserModel(db.Model):
     username = db.Column(db.String(100), unique=True,
                          primary_key=True, index=True)
     password = db.Column(db.String(64), unique=False)
+
+class AutoscalePolicyModel(db.Model):
+    __tablename__= 'AutoscalePolicy'
+    id = db.Column(db.Integer, unique=True, nullable=True,
+                   primary_key=True)
+    upper_threshold = db.Column(db.Integer,unique=False, nullable=True, default=70)
+    lower_threshold = db.Column(db.Integer,unique=False, nullable=True, default=30)
+    ideal_cpu = db.Column(db.Integer,unique=False, nullable=True, default=50)
+

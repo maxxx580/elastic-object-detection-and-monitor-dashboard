@@ -5,22 +5,28 @@ import sys
 
 import numpy as np
 from apscheduler.schedulers.background import BackgroundScheduler
-
 import manager
 from manager.aws import autoscale, instance_manager
-
 
 class AutoScaler():
     """[summary]
         this class contains auto-scaling policy to provision worker instance pool.
     """
 
-    def __init__(self, ec2_manager):
+    def __init__(self, ec2_manager, upper_threshold, lower_threshold, ideal_cpu ):
         self.ec2_manager = ec2_manager
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
         self.MAX_NUMBER_OF_INSTANCES = 10
+        self.upper_threshold = 70
+        self.lower_threshold = 30
+        self.ideal_cpu = 50
         atexit.register(lambda: self.scheduler.shutdown())
+
+    def setPolicy(self,upper_threshold, lower_threshold, ideal_cpu):
+        self.upper_threshold = upper_threshold
+        self.lower_threshold = lower_threshold
+        self.ideal_cpu = ideal_cpu
 
     def auto_scale(self):
         """[summary] this method should be involved periodically (every minute) to examine the average cpu usage for 
@@ -31,15 +37,14 @@ class AutoScaler():
         instances = self.ec2_manager.get_instances(alive=True)
         cpu_usage_data = self.ec2_manager.get_cpu_utilization(k=2)
         cpu_avg = np.mean(cpu_usage_data)
-
-        if cpu_avg >= 70:
+        if cpu_avg >= self.upper_threshold:
             increase_pool = math.ceil(
-                len(instances)*cpu_avg/50 - len(instances))
+                len(instances)*cpu_avg/self.ideal_cpu - len(instances))
             self.scale_up(k=increase_pool)
             print("increase", increase_pool)
 
-        if cpu_avg <= 30:
-            decrease_pool = int(len(instances) - len(instances)*cpu_avg/50)
+        if cpu_avg <= self.lower_threshold:
+            decrease_pool = int(len(instances) - len(instances)*cpu_avg/self.ideal_cpu)
             self.scale_down(k=decrease_pool)
             print("decrease", decrease_pool)
 
@@ -71,7 +76,7 @@ class AutoScaler():
 
     def scale_down(self, k=1):
         """[summary] this methods decreases the size of the worker instances pool. The mimimum number of instances is 1. 
-        Thsi method performs nothing when the minimum number of instances is reached. 
+        This method performs nothing when the minimum number of instances is reached.
 
         Keyword Arguments:
             k {int} -- [description] the number of instances to terminate(default: {1})

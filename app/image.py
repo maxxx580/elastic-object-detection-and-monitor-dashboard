@@ -193,18 +193,10 @@ def saveImagePath(location, username, currenttime, pictype):
     app.db.session.add(new_image)
     app.db.session.commit()
 
-    # db_cursor.execute(query, (location, username, currenttime, pictype))
-    # cnx.commit()
-    # close_db()
 
 
 def getFromdb(username, pictype):
-    # cnx = get_db()
-    # db_cursor = cnx.cursor()
-    # query = "SELECT location FROM Image WHERE username='" + \
-    #     username + "' AND pictype='" + pictype + "'"
-    # db_cursor.execute(query)
-    # result = db_cursor.fetchall()
+
 
     lst_path = list(app.ImageModel.query.filter_by(
         username=username, pictype=pictype).all())

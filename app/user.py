@@ -65,12 +65,6 @@ def register():
         "Password should have 6 to 18 characters"
 
         password = password.encode('utf-8')
-        # cnx = get_db()
-        # db_cursor = cnx.cursor()
-        #
-        # db_cursor.execute(
-        #     'select * from User where username="%s"' % (username))
-        # user = db_cursor.fetchone()
 
         user = app.UserModel.query.filter_by(username=username).first()
         assert user is None, "Username exists"
@@ -152,11 +146,6 @@ def authenticate(username, password):
 
     assert username is not None, "invalid username"
     assert password is not None, "invalid password"
-
-    # db_cursor = get_db().cursor()
-    # db_cursor.execute(
-    #     'select * from User where username="%s"' % (username))
-    # user = db_cursor.fetchone()
 
     user = app.UserModel.query.filter_by(
         username=username).first()
