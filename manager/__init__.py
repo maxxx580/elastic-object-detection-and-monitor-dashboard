@@ -70,6 +70,14 @@ def create_app():
         """
         return render_template('workers_configuration.html')
 
+    @app.route('/autoscale_policy')
+    def autoscale_policy():
+        """[summary] this endpoint renders the auto-scale policy page
+        Returns:
+            [type] -- [description] html for auto-scale policy
+        """
+        return render_template('autoscale_policy.html')
+
     @app.route('/terminate', methods=['POST'])
     @login_required
     def terminate():
@@ -99,6 +107,41 @@ def create_app():
 
     atexit.register(lambda: scheduler.shutdown())
     return app
+
+    @app.route('/submitscale', methods=['POST'])
+    def submitscale():
+        try:
+            upper_threshold = request.form['upper-threshold']
+            lower_threshold = request.form['lower-threshold']
+            ideal_cpu = request.form['ideal-cpu']
+
+            scale_policy = AutoscalePolicyModel.query.first()
+
+            if(scale_policy is None):
+                new_policy = AutoscalePolicyModel(
+                    upper_threshold=upper_threshold, lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
+                db.session.add(new_policy)
+                db.session.commit()
+
+            else:
+                scale_policy.upper_threshold = upper_threshold
+                scale_policy.lower_threshold = lower_threshold
+                scale_policy.ideal_cpu = ideal_cpu
+                db.session.commit()
+
+            auto_scaler.setPolicy(upper_threshold=upper_threshold,
+                                  lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
+
+            return jsonify({
+                'isSuccess': True,
+                'url': url_for('autoscale_policy')
+            })
+
+        except AssertionError as e:
+            return jsonify({
+                'isSuccess': False,
+                'message': e.args
+            })
 
 
 class UserModel(db.Model):
