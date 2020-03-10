@@ -43,18 +43,46 @@ def create_app():
     @app.route('/index')
     @app.route('/dashboard')
     def dashboard():
+        """[summary]
+        this endpoint renders index page (dashboard view)
+        Returns:
+            [type] -- [description] html for dashboard view
+        """
         return render_template('dashboard.html')
 
     @app.route('/workers_dashboard')
     def workers_dashboard():
+        """[summary] this endpoint renders the workers dashboard view
+
+        Returns:
+            [type] -- [description] html for workers dashboard
+        """
         return render_template('workers_dashboard.html')
 
     @app.route('/workers_configuration')
     def worker_configuration():
+        """[summary] this endpoint renders the worker configuration view
+
+        Returns:
+            [type] -- [description] html for worker configuration view
+        """
         return render_template('workers_configuration.html')
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
+        """[summary] this endpoint accepts GET and POST request. 
+        Given a GET request, this endpoint renders the register view. 
+        Given a POST request, this endpoint creates a new user for manager app
+
+        Returns:
+            [type] -- [description] html view for registration view given GET request.
+            json object given POST request
+            {
+                isSuccess: boolean indecating if a user is created successfully,
+                url: url to login view given successful user creation,
+                message: error message if applicable
+            }
+        """
         if request.method == 'GET':
             return render_template('register.html')
         try:
@@ -100,6 +128,19 @@ def create_app():
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
+        """[summary] this endpoint accepts GET and POST requests.
+        Given a GET request, this endpoint renders the login view.
+        Given a POST request, this endpoint authenticates log in attempts. 
+
+        Returns:
+            [type] -- [description] this endpoint renders login view given a GET request.
+            this endpoint return json object given POST request
+            {
+                isSuccess: boolean indecating if a user authentication is successful,
+                url: url to dashboard view given successful user authentication,
+                message: error message if applicable
+            }
+        """
         if request.method == 'GET':
             return render_template('login.html')
 
@@ -128,12 +169,20 @@ def create_app():
 
     @app.route('/logout', methods=['POST'])
     def logout():
+        """[summary] this endpoint accepts a POST request and logs out an user
+
+        Returns:
+            [type] -- [description] html for login view
+        """
         session.clear()
         return render_template('logint.html')
 
     @app.route('/terminate', methods=['POST'])
     def terminate():
-        instances = ec2_manager.get_instances(live_only=True)
+        """[summary] this endpoint accepts a POST request. It terminates all worker instances and 
+        the manager application itself.
+        """
+        instances = ec2_manager.get_instances(alive=True)
         instance_ids = [instance['InstanceId'] for instance in instances]
         ec2_manager.terminate_instances(instance_ids)
         sys.exit(0)

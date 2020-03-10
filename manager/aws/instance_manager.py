@@ -178,13 +178,13 @@ class InstanceManager:
         return self._data_conversion_helper(response, statistics)
 
     def get_elb_healthy_host_count(self):
-        """[summary] this method returns the sum of the number of healty target in the elastic load balancer for the past
+        """[summary] this method returns the maximum number of healty targets in the elastic load balancer for the past
         30 minutes. resolution is 1 minute.
 
         Returns:
             [type] -- [description] a list of tuple. each tuple represents a datapoint with timestamp and value.
         """
-        statistics = 'Sum'
+        statistics = 'Maximum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
