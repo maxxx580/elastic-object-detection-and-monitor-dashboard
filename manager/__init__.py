@@ -189,13 +189,19 @@ def create_app():
 
     @app.route('/clearall', methods=['DELETE'])
     def clearall():
-        # s3 = boto3.resource('s3')
-        # bucket = s3.Bucket('ece1779-a2-images')
-        # bucket.objects.all().delete()
+        s3_clear = boto3.resource('s3')
+        bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
+        for key in bucket_clear.objects.all():
+            key.delete()
+
         ManagerUserModel.query.delete()
         db.session.commit()
         ImageModel.query.delete()
         db.session.commit()
+
+        return jsonify({
+                'isSuccess': True
+            })
 
     def login_required(view):
         """View decorator that redirects anonymous users to the login page."""
