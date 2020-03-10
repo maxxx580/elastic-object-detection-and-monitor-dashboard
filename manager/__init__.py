@@ -102,12 +102,6 @@ def create_app():
         ImageModel.query.delete()
         db.session.commit()
 
-    scheduler.add_job(func=auto_scaler.auto_scale,
-                      trigger='interval', seconds=60)
-
-    atexit.register(lambda: scheduler.shutdown())
-    return app
-
     @app.route('/submitscale', methods=['POST'])
     def submitscale():
         try:
@@ -142,6 +136,15 @@ def create_app():
                 'isSuccess': False,
                 'message': e.args
             })
+
+    scheduler.add_job(func=auto_scaler.auto_scale,
+                      trigger='interval', seconds=60)
+
+    atexit.register(lambda: scheduler.shutdown())
+
+    auto_scaler.scale_up()
+
+    return app
 
 
 class UserModel(db.Model):
