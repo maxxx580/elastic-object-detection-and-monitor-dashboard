@@ -22,7 +22,8 @@ from manager.config import Config
 lock = threading.Lock()
 worker_pool_size = []
 ec2_manager = instance_manager.InstanceManager()
-auto_scaler = autoscale.AutoScaler(ec2_manager,upper_threshold=70,lower_threshold=30,ideal_cpu=50)
+auto_scaler = autoscale.AutoScaler(
+    ec2_manager, upper_threshold=70, lower_threshold=30, ideal_cpu=50)
 db = SQLAlchemy()
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -36,8 +37,6 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
-
-
 
     app.register_blueprint(workers.bp)
     @app.route('/')
@@ -210,9 +209,8 @@ def create_app():
         db.session.commit()
 
         return jsonify({
-                'isSuccess': True,
-                'url': url_for('workers_configuration')
-            })
+            'isSuccess': True
+        })
 
     @app.route('/submitscale', methods=['POST'])
     def submitscale():
@@ -221,11 +219,11 @@ def create_app():
             lower_threshold = request.form['lower-threshold']
             ideal_cpu = request.form['ideal-cpu']
 
-
             scale_policy = AutoscalePolicyModel.query.first()
 
             if(scale_policy is None):
-                new_policy = AutoscalePolicyModel(upper_threshold=upper_threshold,lower_threshold=lower_threshold,ideal_cpu=ideal_cpu)
+                new_policy = AutoscalePolicyModel(
+                    upper_threshold=upper_threshold, lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
                 db.session.add(new_policy)
                 db.session.commit()
 
@@ -235,7 +233,8 @@ def create_app():
                 scale_policy.ideal_cpu = ideal_cpu
                 db.session.commit()
 
-            auto_scaler.setPolicy(upper_threshold=upper_threshold,lower_threshold=lower_threshold,ideal_cpu=ideal_cpu)
+            auto_scaler.setPolicy(upper_threshold=upper_threshold,
+                                  lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
 
             return jsonify({
                 'isSuccess': True,
@@ -291,9 +290,6 @@ def authenticate(username, password):
                           user.password.encode('utf-8')), "invalid credential"
 
 
-
-
-
 class UserModel(db.Model):
     __tablename__ = 'Users'
     username = db.Column(db.String(100), unique=True,
@@ -318,11 +314,13 @@ class ManagerUserModel(db.Model):
                          primary_key=True, index=True)
     password = db.Column(db.String(64), unique=False)
 
+
 class AutoscalePolicyModel(db.Model):
-    __tablename__= 'AutoscalePolicy'
+    __tablename__ = 'AutoscalePolicy'
     id = db.Column(db.Integer, unique=True, nullable=True,
                    primary_key=True)
-    upper_threshold = db.Column(db.Integer,unique=False, nullable=True, default=70)
-    lower_threshold = db.Column(db.Integer,unique=False, nullable=True, default=30)
-    ideal_cpu = db.Column(db.Integer,unique=False, nullable=True, default=50)
-
+    upper_threshold = db.Column(
+        db.Integer, unique=False, nullable=True, default=70)
+    lower_threshold = db.Column(
+        db.Integer, unique=False, nullable=True, default=30)
+    ideal_cpu = db.Column(db.Integer, unique=False, nullable=True, default=50)

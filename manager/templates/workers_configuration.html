@@ -140,8 +140,11 @@
             url: 'clearall',
             data: [],
             success: (result) => {
-                loadWorkerTable()
-                alert('All data cleared');
+                if (result['isSuccess']) {
+                   alert('All data cleared');
+                } else {
+                  alert("clear all failed")
+                }
             }
           });
         });
@@ -152,7 +155,7 @@
             url: 'terminate',
             data: [],
             success: (result) => {
-              alert('All instances terminated');
+              
             }
           });
         });
