@@ -12,7 +12,17 @@ logger = logging.getLogger('manager')
 
 @bp.route('/cpu', methods=['GET'])
 def get_worker_cpu_usage():
+    """[summary] this endpoint retrieves the average CPU user per minute for the past 30 minutes.
 
+    Returns:
+        [type] -- [description] this endpoins return a json object
+        {
+            isSuccess: boolean indecating if the action is successful,
+            timestamps: list of timestamps for each datapoint ,
+            datapoints: list of average cpu usage per minute,
+            message: error mssage if applicable
+        }
+    """
     try:
         cpu_usage_data = manager.ec2_manager.get_cpu_utilization()
         time_stamps, datapoints = data_convert_helper(cpu_usage_data)
@@ -31,6 +41,17 @@ def get_worker_cpu_usage():
 
 @bp.route('/request_count', methods=['GET'])
 def get_worker_inbount_traffic():
+    """[summary] this endpoint retrieves the sum of number of requests per minute for the past 30 minutes. 
+
+    Returns:
+        [type] -- [description] this endpoint returns an json object
+        {
+            isSuccess: boolean indecating if the action is successful,
+            timestamps: list of timestamps for each datapoint ,
+            datapoints: list of sum of number of requests per minute,
+            message: error mssage if applicable
+        }
+    """
     try:
         request_count = manager.ec2_manager.get_elb_request_count()
         time_stamps, datapoints = data_convert_helper(request_count)
@@ -49,12 +70,23 @@ def get_worker_inbount_traffic():
 
 @bp.route('/host_count', methods=['GET'])
 def get_worker_pool_size():
+    """[summary] this endpoint retrieves the maximum number of targets per minute registered to the elastic load balancer. 
+
+    Returns:
+        [type] -- [description] this method returns a json object. 
+        {
+            isSuccess: boolean indecating if the action is successful,
+            timestamps: list of timestamps for each datapoint ,
+            datapoints: list of maximum number of healthy hosts per minute,
+            message: error mssage if applicable
+        }
+    """
     try:
         host_count = manager.ec2_manager.get_elb_healthy_host_count()
         time_stamps, datapoints = data_convert_helper(host_count)
         return jsonify({
             'isSuccess': True,
-            'sizes': datapoints,
+            'datapoints': datapoints,
             'timestamps': time_stamps
         })
     except botocore.exceptions.ClientError as e:
@@ -67,9 +99,22 @@ def get_worker_pool_size():
 
 @bp.route('/', methods=['GET', 'POST', 'DELETE'])
 def workers():
+    """[summary] This endpoint performs three kinds of action based on the HTTP methods. 
+    Given a GET request, it retrieves a list of instances in pending, running, and shutting-down states.
+    Given a POST request, it scale up the worker pool by one. 
+    Given a DELETE request, it scale down the worker pool by one. 
+
+    Returns:
+        [type] -- [description] this method returns a json object. 
+        {
+            isSuccess: boolean indecating if the action is successful,
+            data: list of instances created if applicable
+            message: error mssage if applicable if applicable
+        }
+    """
     try:
         if request.method == 'GET':
-            instances = manager.ec2_manager.get_instances(live_only=True)
+            instances = manager.ec2_manager.get_instances()
             return jsonify({
                 'isSuccess': True,
                 'data': instances

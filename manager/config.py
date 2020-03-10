@@ -18,6 +18,5 @@ class Config(object):
                           "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]
 
     BUCKET_NAME = 'ece1779-a2-images'
-    # INSTANCE_ID = get_instanceId()
     ZONE = 'us-east-1c'
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=60 * 24)
