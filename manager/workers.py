@@ -4,12 +4,14 @@ import botocore
 from flask import Blueprint, abort, jsonify, request
 
 import manager
-from manager.aws import autoscale, instance_manager
+
+from .auth import login_required
 
 bp = Blueprint("workers", __name__, url_prefix='/workers')
 logger = logging.getLogger('manager')
 
 
+@login_required
 @bp.route('/cpu', methods=['GET'])
 def get_worker_cpu_usage():
     """[summary] this endpoint retrieves the average CPU user per minute for the past 30 minutes.
@@ -39,6 +41,7 @@ def get_worker_cpu_usage():
         })
 
 
+@login_required
 @bp.route('/request_count', methods=['GET'])
 def get_worker_inbount_traffic():
     """[summary] this endpoint retrieves the sum of number of requests per minute for the past 30 minutes. 
@@ -68,6 +71,7 @@ def get_worker_inbount_traffic():
         })
 
 
+@login_required
 @bp.route('/host_count', methods=['GET'])
 def get_worker_pool_size():
     """[summary] this endpoint retrieves the maximum number of targets per minute registered to the elastic load balancer. 
@@ -97,6 +101,7 @@ def get_worker_pool_size():
         })
 
 
+@login_required
 @bp.route('/', methods=['GET', 'POST', 'DELETE'])
 def workers():
     """[summary] This endpoint performs three kinds of action based on the HTTP methods. 

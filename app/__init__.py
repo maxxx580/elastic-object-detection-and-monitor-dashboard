@@ -1,15 +1,15 @@
-from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import timedelta
 
-from flask import Flask, url_for, redirect
-
-from app import image, user, error
-from .user import login_required
-from app.config import Config
+from flask import Flask, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_utils import create_database, database_exists
 
+from app import error, image, user
+from app.config import Config
+
+from .user import login_required
 
 db = SQLAlchemy()
 
@@ -62,8 +62,9 @@ def create_app(test_config=None):
 class UserModel(db.Model):
     __tablename__ = 'Users'
     # id = db.Column(db.Integer, unique=True, nullable=True)
-                   # ,primary_key=True)  # Auto-increment should be default
-    username = db.Column(db.String(100), unique=True, primary_key=True,index =True)
+    # ,primary_key=True)  # Auto-increment should be default
+    username = db.Column(db.String(100), unique=True,
+                         primary_key=True, index=True)
     password = db.Column(db.String(64), unique=False)
 
 
