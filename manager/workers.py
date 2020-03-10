@@ -69,7 +69,7 @@ def get_worker_pool_size():
 def workers():
     try:
         if request.method == 'GET':
-            instances = manager.ec2_manager.get_instances(live_only=True)
+            instances = manager.ec2_manager.get_instances()
             return jsonify({
                 'isSuccess': True,
                 'data': instances
