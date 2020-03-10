@@ -184,7 +184,7 @@ class InstanceManager:
         Returns:
             [type] -- [description] a list of tuple. each tuple represents a datapoint with timestamp and value.
         """
-        statistics = 'Average'
+        statistics = 'Sum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
