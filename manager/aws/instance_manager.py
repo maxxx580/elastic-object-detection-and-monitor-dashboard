@@ -18,7 +18,7 @@ class InstanceManager:
 
         self.user_app_tag = 'ece1779-a2-worker'
         self.manager_app_tag = 'ece1779-a2-manager'
-        self.image_id = 'ami-0c1d9d416e381c787'
+        self.image_id = 'ami-0dcc3df7ad2533c0f'
         self.instance_type = 't2.small'
         self.key_pair = 'keypair'
         # rachel's elb
