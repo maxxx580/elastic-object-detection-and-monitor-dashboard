@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 import bcrypt
 import boto3
+import botocore
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import (Blueprint, Flask, g, jsonify, redirect, render_template,
                    request, session, url_for)
@@ -97,29 +98,46 @@ def create_app():
     @login_required
     def terminate():
         """[summary] this endpoint accepts a POST request. It terminates all worker instances and 
-        the manager application itself.
+        stop the manager application itself.
         """
         instances = ec2_manager.get_instances(alive=True)
+        manager_instances = ec2_manager.get_instances(
+            alive=True, manager_instances=True)
         instance_ids = [instance['InstanceId'] for instance in instances]
+        manager_ids = [instance['InstanceId']
+                       for instance in manager_instances]
         ec2_manager.terminate_instances(instance_ids)
+        ec2_manager.stop_instances(manager_ids)
         sys.exit(0)
 
     @app.route('/clearall', methods=['DELETE'])
     @login_required
     def clearall():
-        s3_clear = boto3.resource('s3')
-        bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
-        for key in bucket_clear.objects.all():
-            key.delete()
+        """[summary] this endpoint accepts DELETE request and removes all item from MySql and S3
 
-        ManagerUserModel.query.delete()
-        db.session.commit()
-        UserModel.query.delete()
-        db.session.commit()
-        ImageModel.query.delete()
-        db.session.commit()
-        AutoscalePolicyModel.query.delete()
-        db.session.commit()
+        Returns:
+            [type] -- [description] this endpiont returns json object
+            {
+                isSucess: boolean indecating if operation is successful,
+                message: error message if applicable
+            }
+
+        """
+        try:
+            s3 = boto3.resource('s3').Bucket(
+                'ece1779-a2-pic').objects.all().delete()
+            ImageModel.query.delete()
+            db.session.commit()
+            UserModel.query.delete()
+            db.session.commit()
+            return jsonify({
+                'isSuccess': True
+            })
+        except botocore.exceptions.ClientError as e:
+            return jsonify({
+                'isSuccess': False,
+                'message': e.args
+            })
 
     @app.route('/submitscale', methods=['POST'])
     def submitscale():
@@ -127,15 +145,15 @@ def create_app():
             upper_threshold = float(request.form['upper-threshold'])
             lower_threshold = float(request.form['lower-threshold'])
             increase_ratio = float(request.form['increase-ratio'])
-            decrease_ratio  = float(request.form['decrease-ratio'])
+            decrease_ratio = float(request.form['decrease-ratio'])
 
-            assert 0<upper_threshold<100,\
+            assert 0 < upper_threshold < 100,\
                 "Threshold should be between 0~100(%)"
-            assert 0<lower_threshold<100,\
+            assert 0 < lower_threshold < 100,\
                 "Threshold should be between 0~100(%)"
-            assert increase_ratio>1,\
+            assert increase_ratio > 1,\
                 "Increase ratio should be larger than 1"
-            assert 0<decrease_ratio<1,\
+            assert 0 < decrease_ratio < 1,\
                 "Decrease ratio should be between 0~1"
             assert upper_threshold >= lower_threshold, \
                 "Upper threshold should be higher than lower threshold"
