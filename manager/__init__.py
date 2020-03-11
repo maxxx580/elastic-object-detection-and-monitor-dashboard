@@ -99,7 +99,11 @@ def create_app():
 
         ManagerUserModel.query.delete()
         db.session.commit()
+        UserModel.query.delete()
+        db.session.commit()
         ImageModel.query.delete()
+        db.session.commit()
+        AutoscalePolicyModel.query.delete()
         db.session.commit()
 
     @app.route('/submitscale', methods=['POST'])
