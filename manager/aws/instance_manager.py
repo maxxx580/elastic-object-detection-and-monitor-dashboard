@@ -187,7 +187,7 @@ class InstanceManager:
             [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Maximum'
-        response = self.cw.get_metric_statistics(
+        response_healthy = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
@@ -196,7 +196,26 @@ class InstanceManager:
             Statistics=[statistics],
             Dimensions=[self.elb_profile, self.elb_target_profile]
         )
-        return self._data_conversion_helper(response, statistics)
+
+        return self._data_conversion_helper(response_healthy, statistics)
+
+    def get_elb_unhealthy_host_count(self):
+        """[summary]
+
+        Returns:
+            [type] -- [description]
+        """
+        statistics = 'Maximum'
+        response_unhealthy = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='UnHealthyHostCount',
+            Namespace='AWS/ApplicationELB',
+            Statistics=[statistics],
+            Dimensions=[self.elb_profile, self.elb_target_profile]
+        )
+        return self._data_conversion_helper(response_unhealthy, statistics)
 
     def register_instances_elb(self, instance_ids):
         """[summary] this method registers ec2 instances to the elastic load balancer. 

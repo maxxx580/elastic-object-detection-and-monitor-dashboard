@@ -1,6 +1,7 @@
 import logging
 
 import botocore
+import numpy as np
 from flask import Blueprint, abort, jsonify, request
 
 import manager
@@ -84,11 +85,18 @@ def get_worker_pool_size():
         }
     """
     try:
-        host_count = manager.ec2_manager.get_elb_healthy_host_count()
-        time_stamps, datapoints = data_convert_helper(host_count)
+        healthy_host_count = manager.ec2_manager.get_elb_healthy_host_count()
+        time_stamps, healthy_datapoints = data_convert_helper(
+            healthy_host_count)
+        unhealthy_host_count = manager.ec2_manager.get_elb_unhealthy_host_count()
+        time_stamps, unhealthy_datapoints = data_convert_helper(
+            unhealthy_host_count)
+        host_count = np.array(healthy_datapoints) + \
+            np.array(unhealthy_datapoints)
+
         return jsonify({
             'isSuccess': True,
-            'datapoints': datapoints,
+            'datapoints': host_count.tolist(),
             'timestamps': time_stamps
         })
     except botocore.exceptions.ClientError as e:

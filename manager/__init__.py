@@ -124,18 +124,11 @@ def create_app():
 
         """
         try:
-            s3_clear = boto3.resource('s3')
-            bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
-            for key in bucket_clear.objects.all():
-                key.delete()
-
-            ManagerUserModel.query.delete()
-            db.session.commit()
-            UserModel.query.delete()
-            db.session.commit()
+            s3 = boto3.resource('s3').Bucket(
+                'ece1779-a2-pic').objects.all().delete()
             ImageModel.query.delete()
             db.session.commit()
-            AutoscalePolicyModel.query.delete()
+            UserModel.query.delete()
             db.session.commit()
             return jsonify({
                 'isSuccess': True
