@@ -12,6 +12,7 @@ import collections
 import logging
 import boto3
 import app
+import shutil
 
 
 s3_client = boto3.client('s3')
@@ -178,9 +179,10 @@ def process_images(username, image):
     s3_client.upload_file(thumb_path, BUCKET, thumb_filename)
     saveImagePath(thumb_filename, username, timestamp, "thumbnail")
 
-    os.remove(image_path)
-    os.remove(processed_path)
-    os.remove(thumb_path)
+    # os.remove(image_path)
+    # os.remove(processed_path)
+    # os.remove(thumb_path)
+    shutil.rmtree(target)
 
 
 def saveImagePath(location, username, currenttime, pictype):
