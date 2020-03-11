@@ -14,27 +14,30 @@ class AutoScaler():
         this class contains auto-scaling policy to provision worker instance pool.
     """
 
-    def __init__(self, ec2_manager, upper_threshold, lower_threshold, ideal_cpu):
+    def __init__(self, ec2_manager, upper_threshold, lower_threshold, increase_ratio, decrease_ratio):
         self.ec2_manager = ec2_manager
         self.scheduler = BackgroundScheduler()
         self.scheduler.start()
         self.MAX_NUMBER_OF_INSTANCES = 10
         self.upper_threshold = 70
         self.lower_threshold = 30
-        self.ideal_cpu = 50
+        self.increase_ratio=2
+        self.decrease_ratio=0.5
         atexit.register(lambda: self.scheduler.shutdown())
 
-    def set_policy(self, upper_threshold, lower_threshold, ideal_cpu):
+    def set_policy(self, upper_threshold, lower_threshold, increase_ratio, decrease_ratio):
         """[summary]
 
         Arguments:
             upper_threshold {[type]} -- [description]
             lower_threshold {[type]} -- [description]
-            ideal_cpu {[type]} -- [description]
+            increase_ratio {[type]} -- [description]
+            decrease_ratio {[type]} -- [description]
         """
         self.upper_threshold = upper_threshold
         self.lower_threshold = lower_threshold
-        self.ideal_cpu = ideal_cpu
+        self.increase_ratio = increase_ratio
+        self.decrease_ratio = decrease_ratio
 
     def auto_scale(self):
         """[summary] this method should be involved periodically (every minute) to examine the average cpu usage for 
@@ -47,13 +50,13 @@ class AutoScaler():
         cpu_avg = np.mean(cpu_usage_data)
         if cpu_avg >= self.upper_threshold:
             increase_pool = math.ceil(
-                len(instances)*cpu_avg/self.ideal_cpu - len(instances))
+                len(instances)*self.increase_ratio - len(instances))
             self.scale_up(k=increase_pool)
             print("increase", increase_pool)
 
         if cpu_avg <= self.lower_threshold:
             decrease_pool = int(
-                len(instances) - len(instances)*cpu_avg/self.ideal_cpu)
+                len(instances) - len(instances)*self.decrease_ratio)
             self.scale_down(k=decrease_pool)
             print("decrease", decrease_pool)
 

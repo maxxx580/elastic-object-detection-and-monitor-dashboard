@@ -48,16 +48,20 @@
     <form id="policyForm" >
         <div class="form-group input-group">
             <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-user"></i> </span></div>
-            <input name="upper-threshold" class="form-control" placeholder="upper-threshold" type="text" required/>
+            <input name="upper-threshold" class="form-control" placeholder="upper-threshold(0~100%)" type="text" required/>
         </div>
         <div class="form-group input-group">
             <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
-            <input name="lower-threshold" class="form-control" placeholder="lower-threshold" type="text" required/>
+            <input name="lower-threshold" class="form-control" placeholder="lower-threshold(0~100%)" type="text" required/>
         </div>
 
         <div class="form-group input-group">
             <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
-            <input name="ideal-cpu" class="form-control" placeholder="ideal-cpu" type="text" required/>
+            <input name="increase-ratio" class="form-control" placeholder="increase-ratio(>1)" type="text" required/>
+        </div>
+        <div class="form-group input-group">
+            <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-lock"></i> </span></div>
+            <input name="decrease-ratio" class="form-control" placeholder="decrease-ratio(0~1)" type="text" required/>
         </div>
 
         <div class="form-group">

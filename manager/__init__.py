@@ -22,7 +22,7 @@ from .auth import login_required
 
 ec2_manager = instance_manager.InstanceManager()
 auto_scaler = autoscale.AutoScaler(
-    ec2_manager, upper_threshold=70, lower_threshold=30, ideal_cpu=50)
+    ec2_manager, upper_threshold=70, lower_threshold=30, increase_ratio=2, decrease_ratio=0.5)
 db = SQLAlchemy()
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -105,35 +105,42 @@ def create_app():
     @app.route('/submitscale', methods=['POST'])
     def submitscale():
         try:
-            upper_threshold = request.form['upper-threshold']
-            lower_threshold = request.form['lower-threshold']
-            ideal_cpu = request.form['ideal-cpu']
+            upper_threshold = float(request.form['upper-threshold'])
+            lower_threshold = float(request.form['lower-threshold'])
+            increase_ratio = float(request.form['increase-ratio'])
+            decrease_ratio  = float(request.form['decrease-ratio'])
 
-            result_threshold = r'^.{0,100}$'
-            result_password = r'^.{6,}$'
-
-            assert re.match(result_threshold, upper_threshold, re.M | re.I)
-            "Threshold should be between 0~100(%)"
-            assert re.match(result_threshold, lower_threshold, re.M | re.I)
-            "Threshold should be between 0~100(%)"
-            assert upper_threshold >= lower_threshold, "Upper threshold should be higher than lower threshold"
+            assert 0<upper_threshold<100,\
+                "Threshold should be between 0~100(%)"
+            assert 0<lower_threshold<100,\
+                "Threshold should be between 0~100(%)"
+            assert increase_ratio>1,\
+                "Increase ratio should be larger than 1"
+            assert 0<decrease_ratio<1,\
+                "Decrease ratio should be between 0~1"
+            assert upper_threshold >= lower_threshold, \
+                "Upper threshold should be higher than lower threshold"
 
             scale_policy = AutoscalePolicyModel.query.first()
 
             if(scale_policy is None):
                 new_policy = AutoscalePolicyModel(
-                    upper_threshold=upper_threshold, lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
+                    upper_threshold=upper_threshold, lower_threshold=lower_threshold,
+                    increase_ratio=increase_ratio, decrease_ratio=decrease_ratio)
                 db.session.add(new_policy)
                 db.session.commit()
 
             else:
                 scale_policy.upper_threshold = upper_threshold
                 scale_policy.lower_threshold = lower_threshold
-                scale_policy.ideal_cpu = ideal_cpu
+                scale_policy.increase_ratio = increase_ratio
+                scale_policy.decrease_ratio =decrease_ratio
                 db.session.commit()
 
             auto_scaler.set_policy(upper_threshold=upper_threshold,
-                                   lower_threshold=lower_threshold, ideal_cpu=ideal_cpu)
+                                   lower_threshold=lower_threshold,
+                                   increase_ratio =increase_ratio,
+                                   decrease_ratio=decrease_ratio)
 
             return jsonify({
                 'isSuccess': True,
@@ -186,7 +193,10 @@ class AutoscalePolicyModel(db.Model):
     id = db.Column(db.Integer, unique=True, nullable=True,
                    primary_key=True)
     upper_threshold = db.Column(
-        db.Integer, unique=False, nullable=True, default=70)
+        db.Float, unique=False, nullable=True, default=70)
     lower_threshold = db.Column(
-        db.Integer, unique=False, nullable=True, default=30)
-    ideal_cpu = db.Column(db.Integer, unique=False, nullable=True, default=50)
+        db.Float, unique=False, nullable=True, default=30)
+    increase_ratio = db.Column(
+        db.Float, unique=False, nullable=True, default=2)
+    decrease_ratio = db.Column(
+        db.Float, unique=False, nullable=True, default=0.5)
