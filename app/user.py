@@ -77,17 +77,16 @@ def register():
         app.db.session.add(new_user)
         app.db.session.commit()
 
-        return redirect(url_for("user.login"))
+        return jsonify({
+            'isSuccess': True,
+            'url': url_for('user.login')
+        })
 
     except AssertionError as e:
-        flash(e)
-        print(e)
-        return render_template('user/register.html', e=e.args)
-
-    except Exception as e:
-        flash(e)
-        print(e)
-        return render_template('user/register.html', e=e)
+        return jsonify({
+            'isSuccess': False,
+            'message': e.args
+        })
 
     finally:
 
