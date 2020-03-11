@@ -7,7 +7,7 @@ import boto3
 
 class InstanceManager:
     """[summary] 
-        this class proivdes interface for AWS operations and encapsulate relavent logics. 
+        this class provides interface for AWS operations and encapsulate relevant logic.
     """
 
     def __init__(self):
@@ -50,7 +50,7 @@ class InstanceManager:
         }
 
     def launch_instances(self, k=1):
-        """[summary] this method will luanch worker instances
+        """[summary] this method will launch worker instances
 
         Keyword Arguments:
             k {int} -- [description] the number of instances to launch (default: {1})
@@ -70,7 +70,7 @@ class InstanceManager:
         return response['Instances']
 
     def attach_instances_to_IAM_role(self, instance_ids):
-        """[summary] this method attachs instances to the worker IAM profile
+        """[summary] this method attaches instances to the worker IAM profile
 
         Arguments:
             instance_ids {[type]} -- [description] a list of string as instance id
@@ -114,8 +114,7 @@ class InstanceManager:
 
         Keyword Arguments:
             alive {bool} -- [description] true to retrieve instance in pending and running; false to retrieve 
-            instances in pending, runnig and shuting-down states (default: {False})
-            manager_instances {bool} -- [description] (default: {False})
+            instances in pending, running and shutting-down states(default: {False})
 
         Returns:
             [type] -- [description] a list of instances matching state criteria
@@ -131,12 +130,12 @@ class InstanceManager:
             for instance in reservation['Instances']:
                 response_restructured.append(instance)
 
-        state_filterred = ['pending', 'running',
-                           'shutting-down'] if alive else ['pending', 'running']
+        state_filtered = ['pending', 'running',
+                          'shutting-down'] if alive else ['pending', 'running']
 
-        response_filterred = list(filter(lambda x: x['State']['Name'] in state_filterred,
-                                         response_restructured))
-        return response_filterred
+        response_filtered = list(filter(lambda x: x['State']['Name'] in state_filtered,
+                                        response_restructured))
+        return response_filtered
 
     def get_cpu_utilization(self, k=30):
         """[summary] this method returns the average cpu usage with resolution of 1 minute
@@ -145,7 +144,7 @@ class InstanceManager:
             k {int} -- [description] the number of minute in the past; default to 30.  (default: {30})
 
         Returns:
-            [type] -- [description] a list of tuple. each tuple represents a datapoint with timestamp and value. 
+            [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Average'
         response = self.cw.get_metric_statistics(
@@ -164,7 +163,7 @@ class InstanceManager:
         resolution is 1 minute. 
 
         Returns:
-            [type] -- [description] a list of tuple. each tuple represents a datapoint with timestamp and value. 
+            [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Sum'
         response = self.cw.get_metric_statistics(
@@ -179,11 +178,11 @@ class InstanceManager:
         return self._data_conversion_helper(response, statistics)
 
     def get_elb_healthy_host_count(self):
-        """[summary] this method returns the maximum number of healty targets in the elastic load balancer for the past
+        """[summary] this method returns the maximum number of healthy targets in the elastic load balancer for the past
         30 minutes. resolution is 1 minute.
 
         Returns:
-            [type] -- [description] a list of tuple. each tuple represents a datapoint with timestamp and value.
+            [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Maximum'
         response = self.cw.get_metric_statistics(

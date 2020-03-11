@@ -17,12 +17,12 @@ def get_worker_cpu_usage():
     """[summary] this endpoint retrieves the average CPU user per minute for the past 30 minutes.
 
     Returns:
-        [type] -- [description] this endpoins return a json object
+        [type] -- [description] this endpoints return a json object
         {
-            isSuccess: boolean indecating if the action is successful,
+            isSuccess: boolean indicating if the action is successful,
             timestamps: list of timestamps for each datapoint ,
             datapoints: list of average cpu usage per minute,
-            message: error mssage if applicable
+            message: error message if applicable
         }
     """
     try:
@@ -49,10 +49,10 @@ def get_worker_inbount_traffic():
     Returns:
         [type] -- [description] this endpoint returns an json object
         {
-            isSuccess: boolean indecating if the action is successful,
+            isSuccess: boolean indicating if the action is successful,
             timestamps: list of timestamps for each datapoint ,
             datapoints: list of sum of number of requests per minute,
-            message: error mssage if applicable
+            message: error message if applicable
         }
     """
     try:
@@ -79,10 +79,10 @@ def get_worker_pool_size():
     Returns:
         [type] -- [description] this method returns a json object. 
         {
-            isSuccess: boolean indecating if the action is successful,
+            isSuccess: boolean indicating if the action is successful,
             timestamps: list of timestamps for each datapoint ,
             datapoints: list of maximum number of healthy hosts per minute,
-            message: error mssage if applicable
+            message: error message if applicable
         }
     """
     try:
@@ -112,9 +112,9 @@ def workers():
     Returns:
         [type] -- [description] this method returns a json object. 
         {
-            isSuccess: boolean indecating if the action is successful,
+            isSuccess: boolean indicating if the action is successful,
             data: list of instances created if applicable
-            message: error mssage if applicable if applicable
+            message: error message if applicable if applicable
         }
     """
     try:

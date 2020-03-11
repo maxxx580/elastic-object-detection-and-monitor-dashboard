@@ -38,7 +38,7 @@ class AutoScaler():
 
     def auto_scale(self):
         """[summary] this method should be involved periodically (every minute) to examine the average cpu usage for 
-        the past 2 minutes. This method luanches instances when the average cpu usage is above 70% and terminates instances 
+        the past 2 minutes. This method launches instances when the average cpu usage is above 70% and terminates instances
         when the average cpu is below 30%. The auto scaling policy targets 50% cpu usage and calculate the number 
         of instances needed based on this target. 
         """
@@ -84,7 +84,7 @@ class AutoScaler():
         return instances
 
     def scale_down(self, k=1):
-        """[summary] this methods decreases the size of the worker instances pool. The mimimum number of instances is 1. 
+        """[summary] this methods decreases the size of the worker instances pool. The minimum number of instances is 1.
         This method performs nothing when the minimum number of instances is reached.
 
         Keyword Arguments:
