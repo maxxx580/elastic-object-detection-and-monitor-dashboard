@@ -109,6 +109,15 @@ def create_app():
             lower_threshold = request.form['lower-threshold']
             ideal_cpu = request.form['ideal-cpu']
 
+            result_threshold = r'^.{0,100}$'
+            result_password = r'^.{6,}$'
+
+            assert re.match(result_threshold, upper_threshold, re.M | re.I)
+            "Threshold should be between 0~100(%)"
+            assert re.match(result_threshold, lower_threshold, re.M | re.I)
+            "Threshold should be between 0~100(%)"
+            assert upper_threshold >= lower_threshold, "Upper threshold should be higher than lower threshold"
+
             scale_policy = AutoscalePolicyModel.query.first()
 
             if(scale_policy is None):
