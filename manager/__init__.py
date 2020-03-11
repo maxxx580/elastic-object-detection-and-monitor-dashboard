@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 import bcrypt
 import boto3
+import botocore
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import (Blueprint, Flask, g, jsonify, redirect, render_template,
                    request, session, url_for)
@@ -97,7 +98,7 @@ def create_app():
     @login_required
     def terminate():
         """[summary] this endpoint accepts a POST request. It terminates all worker instances and 
-        the manager application itself.
+        stop the manager application itself.
         """
         instances = ec2_manager.get_instances(alive=True)
         manager_instances = ec2_manager.get_instances(
@@ -112,19 +113,38 @@ def create_app():
     @app.route('/clearall', methods=['DELETE'])
     @login_required
     def clearall():
-        s3_clear = boto3.resource('s3')
-        bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
-        for key in bucket_clear.objects.all():
-            key.delete()
+        """[summary] this endpoint accepts DELETE request and removes all item from MySql and S3
 
-        ManagerUserModel.query.delete()
-        db.session.commit()
-        UserModel.query.delete()
-        db.session.commit()
-        ImageModel.query.delete()
-        db.session.commit()
-        AutoscalePolicyModel.query.delete()
-        db.session.commit()
+        Returns:
+            [type] -- [description] this endpiont returns json object
+            {
+                isSucess: boolean indecating if operation is successful,
+                message: error message if applicable
+            }
+
+        """
+        try:
+            s3_clear = boto3.resource('s3')
+            bucket_clear = s3_clear.Bucket('ece1779-a2-pic')
+            for key in bucket_clear.objects.all():
+                key.delete()
+
+            ManagerUserModel.query.delete()
+            db.session.commit()
+            UserModel.query.delete()
+            db.session.commit()
+            ImageModel.query.delete()
+            db.session.commit()
+            AutoscalePolicyModel.query.delete()
+            db.session.commit()
+            return jsonify({
+                'isSuccess': True
+            })
+        except botocore.exceptions.ClientError as e:
+            return jsonify({
+                'isSuccess': False,
+                'message': e.args
+            })
 
     @app.route('/submitscale', methods=['POST'])
     def submitscale():

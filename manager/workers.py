@@ -34,7 +34,6 @@ def get_worker_cpu_usage():
             'datapoints': datapoints
         })
     except botocore.exceptions.ClientError as e:
-        print(e)
         return jsonify({
             'isSuccess': False,
             'message': e.args
@@ -64,7 +63,6 @@ def get_worker_inbount_traffic():
             'datapoints': datapoints
         })
     except botocore.exceptions.ClientError as e:
-        print(e)
         return jsonify({
             'isSuccess': False,
             'message': e.args
@@ -94,7 +92,6 @@ def get_worker_pool_size():
             'timestamps': time_stamps
         })
     except botocore.exceptions.ClientError as e:
-        print(e)
         return jsonify({
             'isSuccess': False,
             'message': e.args
@@ -140,7 +137,6 @@ def workers():
             abort(405)
 
     except botocore.exceptions.ClientError as e:
-        print(e)
         return jsonify({
             'isSuccess': False,
             'message': e.args
