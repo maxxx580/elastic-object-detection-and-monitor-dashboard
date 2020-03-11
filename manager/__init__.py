@@ -100,8 +100,13 @@ def create_app():
         the manager application itself.
         """
         instances = ec2_manager.get_instances(alive=True)
+        manager_instances = ec2_manager.get_instances(
+            alive=True, manager_instances=True)
         instance_ids = [instance['InstanceId'] for instance in instances]
+        manager_ids = [instance['InstanceId']
+                       for instance in manager_instances]
         ec2_manager.terminate_instances(instance_ids)
+        ec2_manager.stop_instances(manager_ids)
         sys.exit(0)
 
     @app.route('/clearall', methods=['DELETE'])
@@ -127,15 +132,15 @@ def create_app():
             upper_threshold = float(request.form['upper-threshold'])
             lower_threshold = float(request.form['lower-threshold'])
             increase_ratio = float(request.form['increase-ratio'])
-            decrease_ratio  = float(request.form['decrease-ratio'])
+            decrease_ratio = float(request.form['decrease-ratio'])
 
-            assert 0<upper_threshold<100,\
+            assert 0 < upper_threshold < 100,\
                 "Threshold should be between 0~100(%)"
-            assert 0<lower_threshold<100,\
+            assert 0 < lower_threshold < 100,\
                 "Threshold should be between 0~100(%)"
-            assert increase_ratio>1,\
+            assert increase_ratio > 1,\
                 "Increase ratio should be larger than 1"
-            assert 0<decrease_ratio<1,\
+            assert 0 < decrease_ratio < 1,\
                 "Decrease ratio should be between 0~1"
             assert upper_threshold >= lower_threshold, \
                 "Upper threshold should be higher than lower threshold"
