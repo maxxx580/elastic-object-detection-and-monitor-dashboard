@@ -17,6 +17,7 @@ class InstanceManager:
         self.elb = boto3.client('elbv2')
 
         self.user_app_tag = 'ece1779-a2-worker'
+        self.manager_app_tag = 'ece1779-a2-manager'
         self.image_id = 'ami-0c1d9d416e381c787'
         self.instance_type = 't2.small'
         self.key_pair = 'keypair'
@@ -57,7 +58,6 @@ class InstanceManager:
         Returns:
             [type] -- [description] a list instances launched
         """
-        print("********* ec2 manager launching instances *****************")
         response = self.ec2.run_instances(ImageId=self.image_id,
                                           InstanceType=self.instance_type,
                                           KeyName=self.key_pair,
@@ -109,19 +109,20 @@ class InstanceManager:
         return [{"id": instance_status['InstanceId'], "state":instance_status['InstanceState']}
                 for instance_status in response['InstanceStatuses']]
 
-    def get_instances(self, alive=False):
+    def get_instances(self, alive=False, manager_instances=False):
         """[summary] this method retrieves worker instances given criteria.
 
         Keyword Arguments:
             alive {bool} -- [description] true to retrieve instance in pending and running; false to retrieve 
-            instances in pending, runnig and shuting-down states(default: {False})
+            instances in pending, runnig and shuting-down states (default: {False})
+            manager_instances {bool} -- [description] (default: {False})
 
         Returns:
             [type] -- [description] a list of instances matching state criteria
         """
         worker_instance_filter = {
             'Name': 'tag:' + 'Name',
-            'Values': [self.user_app_tag]
+            'Values': [self.manager_app_tag if manager_instances else self.user_app_tag]
         }
         response = self.ec2.describe_instances(
             Filters=[worker_instance_filter])
@@ -237,6 +238,14 @@ class InstanceManager:
             ]
         )
         return response
+
+    def stop_instances(self, instance_ids):
+        """[summary] this method stops intances given instance ids
+
+        Arguments:
+            instance_ids {[type]} -- [description] a list of string as instance id to stop
+        """
+        self.ec2.stop_instances(instance_ids, DryRun=False)
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,

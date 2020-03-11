@@ -61,7 +61,7 @@ def create_app(test_config=None):
 
 class UserModel(db.Model):
     __tablename__ = 'Users'
-    # id = db.Column(db.Integer, unique=True, nullable=True)
+    # id = db.Column(db.Integer, unique=True, nullable=False)
     # ,primary_key=True)  # Auto-increment should be default
     username = db.Column(db.String(100), unique=True,
                          primary_key=True, index=True)
@@ -70,10 +70,10 @@ class UserModel(db.Model):
 
 class ImageModel(db.Model):
     __tablename__ = 'Images'
-    id = db.Column(db.Integer, unique=True, nullable=True,
+    id = db.Column(db.Integer, unique=True, nullable=False,
                    primary_key=True)  # Auto-increment should be default
-    location = db.Column(db.String(200), nullable=True)
-    username = db.Column(db.String(200), db.ForeignKey(
-        "Users.username"), nullable=True)
-    currenttime = db.Column(db.String(45), nullable=True)
-    pictype = db.Column(db.String(45), nullable=True)
+    location = db.Column(db.String(200), nullable=False)
+    username = db.Column(db.String(100), db.ForeignKey(
+        "Users.username"), nullable=False)
+    currenttime = db.Column(db.String(45), nullable=False)
+    pictype = db.Column(db.String(45), nullable=False)
