@@ -26,7 +26,7 @@ class InstanceManager:
         # eric's elb
         self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:targetgroup/worker/f7269e70cd56ae73'
         # sara's elb
-        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:882617376896:targetgroup/ece1779-sara-target-group/47a4e7a698f05363'
+        # self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:882617376896:targetgroup/ece1779-sara-target-group/47a4e7a698f05363'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',
@@ -118,6 +118,8 @@ class InstanceManager:
             alive {bool} -- [description] true to retrieve instance in pending and running; false to retrieve 
             instances in pending, running and shutting-down states(default: {False})
 
+            manager_instances {bool} -- [description] true to retrieve manager instances; false to retrieve 
+            worker instances (default: {False})
         Returns:
             [type] -- [description] a list of instances matching state criteria
         """
@@ -149,6 +151,7 @@ class InstanceManager:
             [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Average'
+        k += 1
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=k * 60),
@@ -170,7 +173,7 @@ class InstanceManager:
         statistics = 'Sum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='RequestCount',
             Namespace='AWS/ApplicationELB',
@@ -189,7 +192,7 @@ class InstanceManager:
         statistics = 'Maximum'
         response_healthy = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='HealthyHostCount',
             Namespace='AWS/ApplicationELB',
@@ -200,15 +203,16 @@ class InstanceManager:
         return self._data_conversion_helper(response_healthy, statistics)
 
     def get_elb_unhealthy_host_count(self):
-        """[summary]
+        """[summary] this method returns the maximum number of unhealthy targets in the elastic load balancer for the past
+        30 minutes. resolution is 1 minute.
 
         Returns:
-            [type] -- [description]
+            [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Maximum'
         response_unhealthy = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='UnHealthyHostCount',
             Namespace='AWS/ApplicationELB',
