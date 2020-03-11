@@ -48,6 +48,20 @@ def create_app():
         Returns:
             [type] -- [description] html for dashboard view
         """
+        auto_policy = AutoscalePolicyModel.query.first()
+
+        if (auto_policy is None):
+            new_policy = AutoscalePolicyModel(
+                upper_threshold=70, lower_threshold=30,
+                increase_ratio=2, decrease_ratio=0.5)
+            db.session.add(new_policy)
+            db.session.commit()
+        else:
+            auto_scaler.set_policy(upper_threshold=auto_policy.upper_threshold,
+                                   lower_threshold=auto_policy.lower_threshold,
+                                   increase_ratio=auto_policy.increase_ratio,
+                                   decrease_ratio=auto_policy.decrease_ratio)
+
         return render_template('dashboard.html')
 
     @app.route('/workers_dashboard')
@@ -58,6 +72,7 @@ def create_app():
         Returns:
             [type] -- [description] html for workers dashboard
         """
+
         return render_template('workers_dashboard.html')
 
     @app.route('/workers_configuration')
@@ -138,12 +153,12 @@ def create_app():
                 scale_policy.upper_threshold = upper_threshold
                 scale_policy.lower_threshold = lower_threshold
                 scale_policy.increase_ratio = increase_ratio
-                scale_policy.decrease_ratio =decrease_ratio
+                scale_policy.decrease_ratio = decrease_ratio
                 db.session.commit()
 
             auto_scaler.set_policy(upper_threshold=upper_threshold,
                                    lower_threshold=lower_threshold,
-                                   increase_ratio =increase_ratio,
+                                   increase_ratio=increase_ratio,
                                    decrease_ratio=decrease_ratio)
 
             return jsonify({

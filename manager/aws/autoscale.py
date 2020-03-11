@@ -48,17 +48,24 @@ class AutoScaler():
         instances = self.ec2_manager.get_instances(alive=True)
         cpu_usage_data = self.ec2_manager.get_cpu_utilization(k=2)
         cpu_avg = np.mean(cpu_usage_data)
+        cpu_avg=10
+        print("####################CPU#####################")
+        print(cpu_avg)
         if cpu_avg >= self.upper_threshold:
             increase_pool = math.ceil(
                 len(instances)*self.increase_ratio - len(instances))
             self.scale_up(k=increase_pool)
-            print("increase", increase_pool)
+            print("####################INCREASE#####################")
+            print(increase_pool)
+            print(self.increase_ratio)
 
         if cpu_avg <= self.lower_threshold:
             decrease_pool = int(
                 len(instances) - len(instances)*self.decrease_ratio)
             self.scale_down(k=decrease_pool)
-            print("decrease", decrease_pool)
+            print("####################DECREASE#####################")
+            print(decrease_pool)
+            print(self.decrease_ratio)
 
     def scale_up(self, k=1):
         """[summary] this method increases the size of the worker instance pool. The maximum number of instances is 10. 
