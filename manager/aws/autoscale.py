@@ -113,13 +113,15 @@ class AutoScaler():
         self.ec2_manager.terminate_instances(instances_to_terminated)
 
     def _configure_instances(self, instance_ids):
-
         instances = self.ec2_manager.get_instance_status(instance_ids)
 
         pending_instances = filter(
-            lambda instance: instance['state'] == 'pending', instances)
+            lambda instance: instance['state']['Name'] == 'pending', instances)
         running_instances = filter(
-            lambda instance: instance['state'] == 'running', instances)
+            lambda instance: instance['state']['Name'] == 'running', instances)
+
+        pending_instances = list(pending_instances)
+        running_instances = list(running_instances)
 
         if len(pending_instances) > 0:
             self.scheduler.add_job(
