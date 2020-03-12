@@ -41,7 +41,7 @@
                 <a class="nav-link" href="autoscale_policy">Auto-scale Policy</a>
             </li>
             </ul>
-            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
+            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit" id="logoutButton">Logout</a>
         </div>
     </nav>
 
@@ -71,6 +71,20 @@
 
 <script>
     $(document).ready(() => {
+        
+        $("#logoutButton").click(function(){
+            $.ajax({
+                url: "logout", 
+                type: "POST", 
+                success: function(result) {
+                    if (result["isSuccess"]) {
+                        window.location.replace("login");
+                    } else {
+                        alert(result["message"])
+                    }
+            }});
+        });
+
         $('#policyForm')
             .ajaxForm({
                 url : "submitscale",

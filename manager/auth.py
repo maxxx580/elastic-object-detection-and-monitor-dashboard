@@ -157,7 +157,19 @@ def logout():
     """[summary] this endpoint accepts a POST request and logs out an user
 
     Returns:
-        [type] -- [description] html for login view
+        [type] -- [description] this endpoint returns json result
+        {
+            isSuccess: boolean indecating if logout is successful,
+            message: error message if applicable
+        }
     """
-    session.clear()
-    return render_template('logint.html')
+    try:
+        session.clear()
+        return jsonify({
+            "isSuccess": True
+        })
+    except:
+        return jsonify({
+            'isSuccess': False,
+            'message': 'Logout Failed'
+        })

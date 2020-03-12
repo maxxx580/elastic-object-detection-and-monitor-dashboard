@@ -40,7 +40,7 @@
             </li>
 
             </ul>
-            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
+            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit" id="logoutButton">Logout</a>
         </div>
     </nav>
     <h3>DNS Name: ece1779-243010613.us-east-1.elb.amazonaws.com</h3>
@@ -103,6 +103,19 @@
     $(document).ready(() => {
 
         loadWorkerTable()
+
+        $("#logoutButton").click(function(){
+            $.ajax({
+                url: "logout", 
+                type: "POST", 
+                success: function(result) {
+                    if (result["isSuccess"]) {
+                        window.location.replace("login");
+                    } else {
+                        alert(result["message"])
+                    }
+            }});
+        });
         
         $("#scale-up-button").click(function(){
           $.ajax({

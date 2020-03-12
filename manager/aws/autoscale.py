@@ -7,6 +7,7 @@ import numpy as np
 from apscheduler.schedulers.background import BackgroundScheduler
 import manager
 from manager.aws import autoscale, instance_manager
+from random import random
 
 
 class AutoScaler():
@@ -21,8 +22,8 @@ class AutoScaler():
         self.MAX_NUMBER_OF_INSTANCES = 10
         self.upper_threshold = 70
         self.lower_threshold = 30
-        self.increase_ratio=2
-        self.decrease_ratio=0.5
+        self.increase_ratio = 2
+        self.decrease_ratio = 0.5
         atexit.register(lambda: self.scheduler.shutdown())
 
     def set_policy(self, upper_threshold, lower_threshold, increase_ratio, decrease_ratio):
@@ -47,15 +48,15 @@ class AutoScaler():
         """
         instances = self.ec2_manager.get_instances(alive=True)
         cpu_usage_data = self.ec2_manager.get_cpu_utilization(k=2)
+        cpu_usage_data = [datapoint for _, datapoint in cpu_usage_data]
         cpu_avg = np.mean(cpu_usage_data)
-        cpu_avg=10
-        print("####################CPU#####################")
+        print("####################       CPU       #####################")
         print(cpu_avg)
         if cpu_avg >= self.upper_threshold:
             increase_pool = math.ceil(
                 len(instances)*self.increase_ratio - len(instances))
             self.scale_up(k=increase_pool)
-            print("####################INCREASE#####################")
+            print("####################    SCALE UP      #####################")
             print(increase_pool)
             print(self.increase_ratio)
 
@@ -63,7 +64,7 @@ class AutoScaler():
             decrease_pool = int(
                 len(instances) - len(instances)*self.decrease_ratio)
             self.scale_down(k=decrease_pool)
-            print("####################DECREASE#####################")
+            print("####################    SCALE DOWN     #####################")
             print(decrease_pool)
             print(self.decrease_ratio)
 
@@ -112,5 +113,25 @@ class AutoScaler():
         self.ec2_manager.terminate_instances(instances_to_terminated)
 
     def _configure_instances(self, instance_ids):
-        self.ec2_manager.attach_instances_to_IAM_role(instance_ids)
-        self.ec2_manager.register_instances_elb(instance_ids)
+        instances = self.ec2_manager.get_instance_status(instance_ids)
+
+        pending_instances = filter(
+            lambda instance: instance['state']['Name'] == 'pending', instances)
+        running_instances = filter(
+            lambda instance: instance['state']['Name'] == 'running', instances)
+
+        pending_instances = list(pending_instances)
+        running_instances = list(running_instances)
+
+        if len(pending_instances) > 0:
+            self.scheduler.add_job(
+                func=lambda: self._configure_instances(
+                    [instance['id'] for instance in pending_instances]),
+                trigger='date',
+                run_date=datetime.datetime.now() + datetime.timedelta(seconds=30))
+
+        if len(running_instances) > 0:
+            running_instance_ids = [instance['id']
+                                    for instance in running_instances]
+            self.ec2_manager.attach_instances_to_IAM_role(running_instance_ids)
+            self.ec2_manager.register_instances_elb(running_instance_ids)

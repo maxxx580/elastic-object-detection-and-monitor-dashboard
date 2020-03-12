@@ -28,7 +28,7 @@ def get_worker_cpu_usage():
     """
     try:
         cpu_usage_data = manager.ec2_manager.get_cpu_utilization()
-        time_stamps, datapoints = data_convert_helper(cpu_usage_data)
+        time_stamps, datapoints = _data_convert_helper(cpu_usage_data)
         return jsonify({
             'isSuccess': True,
             'timestamps': time_stamps,
@@ -57,7 +57,7 @@ def get_worker_inbount_traffic():
     """
     try:
         request_count = manager.ec2_manager.get_elb_request_count()
-        time_stamps, datapoints = data_convert_helper(request_count)
+        time_stamps, datapoints = _data_convert_helper(request_count)
         return jsonify({
             'isSuccess': True,
             'timestamps': time_stamps,
@@ -86,10 +86,10 @@ def get_worker_pool_size():
     """
     try:
         healthy_host_count = manager.ec2_manager.get_elb_healthy_host_count()
-        time_stamps, healthy_datapoints = data_convert_helper(
+        time_stamps, healthy_datapoints = _data_convert_helper(
             healthy_host_count)
         unhealthy_host_count = manager.ec2_manager.get_elb_unhealthy_host_count()
-        time_stamps, unhealthy_datapoints = data_convert_helper(
+        time_stamps, unhealthy_datapoints = _data_convert_helper(
             unhealthy_host_count)
         host_count = np.array(healthy_datapoints) + \
             np.array(unhealthy_datapoints)
@@ -151,7 +151,7 @@ def workers():
         })
 
 
-def data_convert_helper(response):
+def _data_convert_helper(response):
     time_stamps = [datapoint[0] for datapoint in response]
     datapoints = [datapoint[1] for datapoint in response]
     return [time_stamps, datapoints]

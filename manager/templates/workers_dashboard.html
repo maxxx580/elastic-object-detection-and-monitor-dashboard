@@ -39,7 +39,7 @@
                 <a class="nav-link" href="autoscale_policy">Auto-scale Policy</a>
             </li>
             </ul>
-            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit">Logout</a>
+            <a class="btn btn-outline-success my-2 my-sm-0 " role="submit" id="logoutButton">Logout</a>
         </div>
     </nav>
     <div class="chart-container" style="position: relative; height:40vh; width:80vw">
@@ -49,11 +49,23 @@
 
   <script>
     $(document).ready(() => {
+
+        $("#logoutButton").click(function(){
+            $.ajax({
+                url: "logout", 
+                type: "POST", 
+                success: function(result) {
+                    if (result["isSuccess"]) {
+                        window.location.replace("login");
+                    } else {
+                        alert(result["message"])
+                    }
+            }});
+        });
+
+
         $.ajax({url: "/workers/host_count", success: (result) => {
-            var timestamps = result.timestamps.map((ele) => {
-                var d = new Date(ele);
-                return d.getHours() + ":" + d.getMinutes();
-            });
+            var timestamps = timeConverter(result.timestamps);
             var ctx_pool_size = document.getElementById('workers').getContext('2d');
             var myChart = new Chart(ctx_pool_size, {
                 type: 'line',
@@ -97,6 +109,17 @@
             });
         }});
     });
+
+    function timeConverter(rawTime) {
+        return rawTime.map((element) => {
+                time = parseFloat(element)
+                hour = Math.floor(time / 1)
+                min = Math.floor((time % 1) * 60 )
+                return hour.toString() + ":" + min.toString()
+        });
+    }
+
+
   </script>
 
 </html>
