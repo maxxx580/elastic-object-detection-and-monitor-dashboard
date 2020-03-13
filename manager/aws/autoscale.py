@@ -90,7 +90,7 @@ class AutoScaler():
         self.scheduler.add_job(
             func=lambda: self._configure_instances(instance_ids),
             trigger='date',
-            run_date=datetime.datetime.now() + datetime.timedelta(seconds=120))
+            run_date=datetime.datetime.now() + datetime.timedelta(seconds=90))
 
         return instances
 
@@ -107,7 +107,7 @@ class AutoScaler():
         if k == 0:
             return
         instances_to_terminated = [instance['InstanceId']
-                                   for instance in instances[:k]]
+                                   for instance in instances[-k:]]
 
         self.ec2_manager.unregister_instances_elb(instances_to_terminated)
         self.ec2_manager.terminate_instances(instances_to_terminated)
