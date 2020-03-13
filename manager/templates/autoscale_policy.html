@@ -21,6 +21,7 @@
   </head>
 
   <body>
+
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">Auto-scale Policy</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +46,21 @@
         </div>
     </nav>
 
+    <div class="container-fluid col-8">
+        <caption><p class="h3">Autoscale Policy</p></caption>
+      <table id='policy_table' class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Upper threshold (%)</th>
+            <th scope="col">Lower threshold (%)</th>
+            <th scope="col">Increase ratio</th>
+            <th scope="col">Decrease ratio</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
     <form id="policyForm" >
         <div class="form-group input-group">
             <div class="input-group-prepend"><span class="input-group-text"> <i class="fa fa-user"></i> </span></div>
@@ -68,9 +84,29 @@
             <button type="submit" class="btn btn-primary btn-block"> Submit</button>
         </div>
     </form>
+    </div>
 
 <script>
+
+        loadPolicy = () => {
+            $.ajax({
+                type: 'GET',
+                url: 'loadpolicy',
+                data: [],
+                success: (result) => {
+                    $("#policy_table > tbody").append('<tr>'
+                                        + '<td>' + result['upper_threshold'] + '</td>'
+                                        + '<td>' + result['lower_threshold'] + '</td>'
+                                        + '<td>' + result['increase_ratio'] + '</td>'
+                                        + '<td>' + result['decrease_ratio'] + '</td>'
+                                        + '</tr>');
+
+                }
+            });
+        }
+
     $(document).ready(() => {
+        loadPolicy();
         
         $("#logoutButton").click(function(){
             $.ajax({

@@ -49,7 +49,7 @@ def create_app():
         Returns:
             [type] -- [description] html for dashboard view
         """
-        auto_policy = AutoscalePolicyModel.query.first()
+        auto_policy = AutoscalePolicyModel.query.first();
 
         if (auto_policy is None):
             new_policy = AutoscalePolicyModel(
@@ -197,7 +197,21 @@ def create_app():
 
     auto_scaler.scale_up()
 
+    @app.route('/loadpolicy', methods=['GET'])
+    @login_required
+    def load_policy():
+        load_policy = AutoscalePolicyModel.query.first()
+        return jsonify({
+                'isSuccess': True,
+                'upper_threshold': load_policy.upper_threshold,
+                'lower_threshold': load_policy.lower_threshold,
+                'increase_ratio': load_policy.increase_ratio,
+                'decrease_ratio': load_policy.decrease_ratio
+            })
+
     return app
+
+
 
 
 class UserModel(db.Model):
