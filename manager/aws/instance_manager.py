@@ -268,7 +268,7 @@ class InstanceManager:
         Arguments:
             instance_ids {[type]} -- [description] a list of string as instance id to stop
         """
-        self.ec2.stop_instances(instance_ids, DryRun=False)
+        self.ec2.stop_instances(InstanceIds=instance_ids, DryRun=False)
 
     def _data_conversion_helper(self, response, statistics):
         res = [[point['Timestamp'].timestamp(),

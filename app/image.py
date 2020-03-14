@@ -141,7 +141,7 @@ def images():
 
 def process_images(username, image):
     extension = image.filename.split('.')[-1]
-    assert extension in set(
+    assert extension.lower() in set(
         ["bmp", "pbm", "pgm", "ppm", "sr", "ras", "jpeg", "jpg", "jpe", "jp2", "tiff", "tif", "png"]), \
         "Unsupported format "
 
@@ -196,9 +196,7 @@ def saveImagePath(location, username, currenttime, pictype):
     app.db.session.commit()
 
 
-
 def getFromdb(username, pictype):
-
 
     lst_path = list(app.ImageModel.query.filter_by(
         username=username, pictype=pictype).all())
