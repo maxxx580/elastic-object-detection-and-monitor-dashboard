@@ -96,7 +96,18 @@ This application exposes two endpoints below for testing purposes.
     ~~~
 
 ## Manager app interface
+The dashboard page shows two charts. The first chart shows the total CPU utilization of the worker for the past 30 minutes with the resolution of 1 minute. The second chart shows the rate of HTTP requests received by the worker in each minute for the past 30 minutes.
+![manager dashboard](documentation/figures/manager_dashboard.png)
 
+The page "Number of workers" shows the number of workers for the past 30 minutes with the resolution of 1 minute.
+![manager workers](documentation/figures/manager_workers.png)
+
+The configuration page displays the load-balancer DNS name and the information of all the instances in the worker pool. There are four buttons on this page. Administrators can manually increase one instance by clicking the scale up button. They can manually decrease one instance by clicking the scale down button. The "Clear all" button will delete application data stored on the database as well as all images stored on S3. The "Terminate" button will terminate all the workers and then stop the
+manager itself.
+![manager configuration](documentation/figures/manager_configuration.png)
+
+The page "Auto-scale Policy" asks administrators to input the upper and lower threshold and the increase and decrease ratio to set a new auto scale policy.
+![manager auto scale](documentation/figures/manager_autoscale.png)
 
 ## System Architectures
 ![system architecture](documentation/figures/a2-system_architecture.png) 
@@ -142,8 +153,6 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 
   Number of instances after auto-decrement = Decrease ratio * Current number of instances
 
-
-
 ## Results
 
 
@@ -159,8 +168,11 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 
 ## Contribution of each member 
 * Hongyu Liu 1005851295
+Stored information about user accounts and the location of photos owned by a user on
+AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.
 
 * Ran Wang 1006126951
+Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
 
 * Zixiang Ma 1005597285
-  
+Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
