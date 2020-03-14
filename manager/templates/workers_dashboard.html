@@ -112,9 +112,10 @@
 
     function timeConverter(rawTime) {
         return rawTime.map((element) => {
+                var date = new Date(element * 1000);
                 time = parseFloat(element)
-                hour = Math.floor(time / 1)
-                min = Math.floor((time % 1) * 60 )
+                hour = date.getHours()
+                min = date.getMinutes()
                 return hour.toString() + ":" + min.toString()
         });
     }

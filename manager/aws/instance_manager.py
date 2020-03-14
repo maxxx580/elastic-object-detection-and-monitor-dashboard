@@ -151,7 +151,6 @@ class InstanceManager:
             [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Average'
-        k += 1
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=k * 60),
@@ -173,7 +172,7 @@ class InstanceManager:
         statistics = 'Sum'
         response = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='RequestCount',
             Namespace='AWS/ApplicationELB',
@@ -192,7 +191,7 @@ class InstanceManager:
         statistics = 'Maximum'
         response_healthy = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='HealthyHostCount',
             Namespace='AWS/ApplicationELB',
@@ -212,7 +211,7 @@ class InstanceManager:
         statistics = 'Maximum'
         response_unhealthy = self.cw.get_metric_statistics(
             Period=1 * 60,
-            StartTime=datetime.utcnow() - timedelta(seconds=31 * 60),
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
             MetricName='UnHealthyHostCount',
             Namespace='AWS/ApplicationELB',
@@ -272,7 +271,7 @@ class InstanceManager:
         self.ec2.stop_instances(instance_ids, DryRun=False)
 
     def _data_conversion_helper(self, response, statistics):
-        res = [[point['Timestamp'].hour+point['Timestamp'].minute/60,
+        res = [[point['Timestamp'].timestamp(),
                 point[statistics]] for point in response['Datapoints']]
         return sorted(res, key=itemgetter(0))
 
