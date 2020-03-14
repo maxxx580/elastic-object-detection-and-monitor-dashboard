@@ -1,10 +1,10 @@
 # ece1779-a2
 
 ## Overview
-This project is a python-based web application that allows manager to create instances 
+This project is a python-based web application that allows manager to control worker pools, each of which is an EC2 instance. Manager itself is deployed on a single EC2 and is set to run on port 5000.The size of worker pool can be scaled manually and automatically.  All images are saved in S3 and all data is saved in RDS.
 
 
-users to upload images and get the processed ones with objects detected. The application is deployed by gunicorn on a single EC2 and is set to run on port 5000. (http://54.159.34.94:5000)
+It also allows users to upload images and get the processed ones with objects detected. The load of user app is balanced by Load Balancer. (DNS name: ece1779-243010613.us-east-1.elb.amazonaws.com)
 
 ## Group members
 * Hongyu Liu 1005851295   
@@ -14,7 +14,7 @@ users to upload images and get the processed ones with objects detected. The app
 ## Quick Start
 
 ### Access to AWS EC2 instance
-use the command below to access EC2 instance. The project is placed at root directory and please use the start up script to launch. 
+Use the command below to access EC2 instance. The project is placed at root directory and please use the start up script to launch. 
 ```
 ssh -i "keypair.pem" ubuntu@ec2-54-159-34-94.compute-1.amazonaws.com
 ```
@@ -44,11 +44,13 @@ During registration, users should provide a unique username and a password. User
 
 ### Profile view
 Users will be redirected to profile upon successful login. The profile view contains an image upload form and a gallery of thumbnails of the processed images. Users can select an image file and click on the upload button to add a new image to the profile. In the gallery section, users can only view the images uploaded by themselves.
+
 ![profile page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.15&#32;PM.png)  
+
 
 ### Image view
 By clicking on the thumbnails, users will be redirected to the image page that shows the original image and the image processed by the object detection modules. 
-![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-14&#32;at&#32;12.21.43&#32;AM.png)  
+![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-14&#32;at&#32;12.21.43&#32;AM.png)
 
 ## API Interface
 
@@ -168,11 +170,16 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 
 ## Contribution of each member 
 * Hongyu Liu 1005851295
-Stored information about user accounts and the location of photos owned by a user on
-AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.
+
+  Stored information about user accounts and the location of photos owned by a user on
+  AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.  
+
 
 * Ran Wang 1006126951
-Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
+
+  Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
+
 
 * Zixiang Ma 1005597285
-Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
+
+  Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
