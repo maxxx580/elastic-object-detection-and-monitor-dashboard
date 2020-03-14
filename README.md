@@ -26,6 +26,15 @@ To start the deployed server on EC2, execute the start up script at Desktop dire
 ~/Desktop/$ sudo bash start.sh
 ```
 
+### Manager account
+
+There is an pre-registered manager account, feel free to use it.
+
+```
+Manager name: admin
+Password : password
+```
+
 ## Major Dependencies
 ```
 Python 3.7
@@ -45,7 +54,7 @@ During registration, users should provide a unique username and a password. User
 ### Profile view
 Users will be redirected to profile upon successful login. The profile view contains an image upload form and a gallery of thumbnails of the processed images. Users can select an image file and click on the upload button to add a new image to the profile. In the gallery section, users can only view the images uploaded by themselves.
 
-![profile page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.15&#32;PM.png)  
+![profile page](documentation/figures/profile_page.png)  
 
 
 ### Image view
@@ -157,6 +166,31 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 
 ## Results
 
+![Traffic page](documentation/figures/worker_traffic.png) 
+![CPU page](documentation/figures/CPU-usage.png)  
+![Target page](documentation/figures/Numberoftarget.png)  
+
+At 23:22, 23:26 and 23:30, we use load generator to upload 200 pictures each, in total 600 pictures. Auto-scaler runs every 60 seconds. It compares the average CPU utilization over past 2 minutes to upper and lower thresholds from Autoscale Policy. If Auto-scaler decides to resize the worker pool, the process can be completed within 90 seconds.
+
+The autoscale policy in this demo is,
+```
+Upper threshold: 70%
+Lower threshold: 30%
+Increase ratio: 2
+Decrease ratio: 3
+```
+
+### Scale up
+
+The number of target jumps to 8, as the auto-scaler reacts sensitively, therefore, it doesn't reach 10. 
+
+### Scale down
+
+After the user stops uploading pictures, the CPU utilization decrease to below 30%. It halves 8 instances to 4, then 2, eventually 1.
+
+### Constant
+
+Between 23:17 and 23:30, there are small number of inbound request, the number of instance remains 1. 
 
 ## Error Handling
 
