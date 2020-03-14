@@ -1,10 +1,14 @@
 # ece1779-a2
 
 ## Overview
-This project is a python-based web application that allows manager to create instances 
+This project is a python-based web application that allows manager to control worker pools, each of which is an EC2 instance. Manager itself is deployed on a single EC2 and is set to run on port 5000.The size of worker pool can be scaled manually and automatically.  All images are saved in S3 and all data is saved in RDS.
+
+It also allows users to upload images and get the processed ones with objects detected. The load of user app is balanced by Load Balancer. 
+
+DNS name: ece1779-243010613.us-east-1.elb.amazonaws.com
+AMI ID: ami-0016a2318cd331666
 
 
-users to upload images and get the processed ones with objects detected. The application is deployed by gunicorn on a single EC2 and is set to run on port 5000. (http://54.159.34.94:5000)
 
 ## Group members
 * Hongyu Liu 1005851295   
@@ -14,7 +18,7 @@ users to upload images and get the processed ones with objects detected. The app
 ## Quick Start
 
 ### Access to AWS EC2 instance
-use the command below to access EC2 instance. The project is placed at root directory and please use the start up script to launch. 
+Use the command below to access EC2 instance. The project is placed at root directory and please use the start up script to launch. 
 ```
 ssh -i "keypair.pem" ubuntu@ec2-54-159-34-94.compute-1.amazonaws.com
 ```
@@ -24,6 +28,15 @@ ssh -i "keypair.pem" ubuntu@ec2-54-159-34-94.compute-1.amazonaws.com
 To start the deployed server on EC2, execute the start up script at Desktop directory with command below. 
 ```
 ~/Desktop/$ sudo bash start.sh
+```
+
+### Manager account
+
+There is an pre-registered manager account, feel free to use it.
+
+```
+Manager name: admin
+Password : password
 ```
 
 ## Major Dependencies
@@ -44,11 +57,13 @@ During registration, users should provide a unique username and a password. User
 
 ### Profile view
 Users will be redirected to profile upon successful login. The profile view contains an image upload form and a gallery of thumbnails of the processed images. Users can select an image file and click on the upload button to add a new image to the profile. In the gallery section, users can only view the images uploaded by themselves.
-![profile page](documentation/figures/Screen&#32;Shot&#32;2020-02-12&#32;at&#32;10.39.15&#32;PM.png)  
+
+![profile page](documentation/figures/profile_page.png)  
+
 
 ### Image view
 By clicking on the thumbnails, users will be redirected to the image page that shows the original image and the image processed by the object detection modules. 
-![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-14&#32;at&#32;12.21.43&#32;AM.png)  
+![image page](documentation/figures/Screen&#32;Shot&#32;2020-02-14&#32;at&#32;12.21.43&#32;AM.png)
 
 ## API Interface
 
@@ -156,6 +171,42 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 ## Results
 
 
+At 23:22, 23:26 and 23:30, we use load generator to upload 200 pictures each, in total 600 pictures. Auto-scaler runs every 60 seconds. It compares the average CPU utilization over past 2 minutes to upper and lower thresholds from Autoscale Policy. If Auto-scaler decides to resize the worker pool, the process can be completed within 90 seconds.
+
+The autoscale policy in this demo is,
+```
+Upper threshold: 70%
+Lower threshold: 30%
+Increase ratio: 2
+Decrease ratio: 0.5
+```
+
+### Scale up
+
+Starting from 21:31, we used two load generators to upload pictures to test auto-scaler by turns and at the same time, which uploaded 2 and 4 pictures per seconds.  At 21:43, around 360 picture uploaded per minute, reaching the top inbound traffic in this particular test. In total, 1200 pictures were uploaded and processed.
+
+![Scaleup cpu page](documentation/figures/scaleup_CPU2.png) 
+![Scaleup target page](documentation/figures/scaleup_target2.png) 
+
+The CPU utilization went over the upper threshold 70%, auto-scaler started to react. The number of target jumped to 8, which was able to process the load, therefore, it didn't reach 10.
+
+### Scale down
+
+After 1200 pictures uploaded and processed, the CPU utilization dropped down from 21:44. 
+![Scaledown cpu page](documentation/figures/scaledown_CPU2.png) 
+![Scaledown target page](documentation/figures/scaledown_target2.png) 
+
+After the user stops uploading pictures, the CPU utilization decrease to below 30%. It halves 8 instances to 4, then 2, eventually 1.
+
+### Constant
+
+From 21:54, the number of instance remained stable at 1. The average CPU utilization r
+
+![constant cpu page](documentation/figures/constant_CPU2.png) 
+![constant target page](documentation/figures/constant_target2.png) 
+
+
+
 ## Error Handling
 
 * 404 Not Found
@@ -168,11 +219,16 @@ Auto scaling policy has four parameters - upper threshold, lower threshold, incr
 
 ## Contribution of each member 
 * Hongyu Liu 1005851295
-Stored information about user accounts and the location of photos owned by a user on
-AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.
+
+  Stored information about user accounts and the location of photos owned by a user on
+  AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.  
+
 
 * Ran Wang 1006126951
-Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
+
+  Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
+
 
 * Zixiang Ma 1005597285
-Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
+
+  Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
