@@ -106,8 +106,8 @@ def create_app():
         instance_ids = [instance['InstanceId'] for instance in instances]
         manager_ids = [instance['InstanceId']
                        for instance in manager_instances]
-        ec2_manager.terminate_instances(instance_ids)
         ec2_manager.stop_instances(manager_ids)
+        ec2_manager.terminate_instances(instance_ids)
         sys.exit(0)
 
     @app.route('/clearall', methods=['DELETE'])
