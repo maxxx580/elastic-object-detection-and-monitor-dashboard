@@ -1,6 +1,9 @@
+import logging
 import os
+import threading
 from datetime import timedelta
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
@@ -12,16 +15,16 @@ from app.config import Config
 from .user import login_required
 
 db = SQLAlchemy()
+lock = threading.Lock()
+
+logger = logging.getLogger()
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 
 def create_app(test_config=None):
 
-    # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    # app.config.from_mapping(
-    #     SECRET_KEY='dev',
-    #     PERMANENT_SESSION_LIFETIME=timedelta(minutes=60 * 24)
-    # )
 
     app.config.from_object(Config)
     db.init_app(app)
@@ -56,7 +59,29 @@ def create_app(test_config=None):
     def index():
         return redirect(url_for('image.profile'))
 
+    @app.before_request
+    def before_request_func():
+        lock.acquire()
+        logger.critical("request received")
+        lock.release()
+
+    scheduler.add_job(func=update_request_count_metrics,
+                      trigger='interval', seconds=60)
     return app
+
+
+def update_request_count_metrics():
+    try:
+        lock.acquire()
+        with open('request.log') as f:
+            for i, l in enumerate(f):
+                pass
+        # TODO: update aws custom metric here i+1 is the number of request in the past 1 min
+    except:
+        pass
+    finally:
+        open("request.log", "w").close()
+        lock.release()
 
 
 class UserModel(db.Model):
