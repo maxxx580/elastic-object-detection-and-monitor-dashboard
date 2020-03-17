@@ -162,7 +162,21 @@ class InstanceManager:
         )
         return self._data_conversion_helper(response, statistics)
 
-    def get_elb_request_count(self):
+    def get_cpu_utilization_by_instance(self, instance_id):
+        statistics = 'Average'
+        response = self.cw.get_metric_statistics(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='CPUUtilization',
+            Namespace='AWS/EC2',
+            Unit='Percent',
+            Statistics=[statistics],
+            Dimensions=[{'Name': 'InstanceId', 'Value': instance_id}]
+        )
+        return self._data_conversion_helper(response, statistics)
+
+    def get_request_count(self):
         """[summary] this method returns the sum of the number of request received by workers for the past 30 minutes. 
         resolution is 1 minute. 
 
@@ -174,7 +188,7 @@ class InstanceManager:
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
-            MetricName='RequestCount',
+            MetricName='RequestCountPerTarget',
             Namespace='AWS/ApplicationELB',
             Statistics=[statistics],
             Dimensions=[self.elb_profile, self.elb_target_profile]

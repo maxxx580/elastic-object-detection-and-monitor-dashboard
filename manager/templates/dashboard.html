@@ -44,19 +44,13 @@
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit" id="logoutButton">Logout</a>
         </div>
     </nav>
-
-    <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-        <canvas id="CPU_Usage" height="500vw" width="600vw"></canvas>
-    </div>
-    <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-        <canvas id="Inbound_Request" height="500vw" width="600vw"></canvas>
+    <div id='charts-container'>
     </div>
  
 </body>
 
   <script>
     $(document).ready(() => {
-
         $("#logoutButton").click(function(){
             $.ajax({
                 url: "logout", 
@@ -70,105 +64,90 @@
             }});
         });
 
-        $.ajax({url: "/workers/request_count", success: (result) => {
-            if (result.isSuccess) {
-                var timestamps = timeConverter(result.timestamps);
-                var ctx_cpu = document.getElementById('Inbound_Request').getContext('2d');
-                var myChart = new Chart(ctx_cpu, {
-                    type: 'line',
-                    data: {
-                        labels: timestamps,
-                        datasets: [{
-                            label: 'Inbound Request',
-                            data: result.datapoints,
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.2)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 99, 132, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        title: {
-                            display: true,
-                            text: 'Worker Inbound Traffic'
-                        },
-                        maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                left: 50,
-                                right: 10,
-                                top: 10,
-                                bottom: 10
-                            }
-                        },
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                        }
-                    }
-                });
+        $.ajax({url: "/workers/request_count", success: (response) => {
+            if (response["isSuccess"]) {
+                $("#charts-container").append('<h3>Workers Request Count</h3>')
+                for (var i = 0; i < response['datapoints'].length; i += 1) {
+                    $("#charts-container").append(
+                            '<div class="chart-container" style="position: relative; height:30vh; width:40vw">'
+                            + '<canvas id=request'+ response['datapoints'][i]['instance_id'] + ' height="200vw" width="300vw"></canvas>'
+                            + '</div>'
+                    )
+                    load_chart(response['datapoints'][i]['timestamps'], 
+                        response['datapoints'][i]['datapoints'], 
+                        response['datapoints'][i]['instance_id'],
+                        "request count", 'request')
+                }
             } else {
                 alert(result.message);
             }
         }});
 
-        $.ajax({url: "/workers/cpu", success: (result) => {
-            if (result.isSuccess) {
-                var timestamps = timeConverter(result.timestamps);
-                var ctx_cpu = document.getElementById('CPU_Usage').getContext('2d');
-                var myChart = new Chart(ctx_cpu, {
-                    type: 'line',
-                    data: {
-                        labels: timestamps,
-                        datasets: [{
-                            label: 'CPU Usage',
-                            data: result.datapoints,
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.2)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 99, 132, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        title: {
-                            display: true,
-                            text: 'Worker CPU Usage'
-                        },
-                        maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                left: 50,
-                                right: 10,
-                                top: 10,
-                                bottom: 10
-                            }
-                        },
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                        }
-                    }
-                });
+        $.ajax({url: "/workers/cpu", success: (response) => {
+            if(response['isSuccess']) {
+                $("#charts-container").append('<h3>Workers CPU Usage</h3>')
+                for (var i = 0; i < response['datapoints'].length; i += 1) {
+                    $("#charts-container").append(
+                        '<div class="chart-container" style="position: relative; height:30vh; width:40vw">'
+                        + '<canvas id=cpu'+ response['datapoints'][i]['instance_id'] + ' height="200vw" width="300vw"></canvas>'
+                        + '</div>'
+                    )
+                    load_chart(response['datapoints'][i]['timestamps'], 
+                    response['datapoints'][i]['datapoints'], 
+                    response['datapoints'][i]['instance_id'],
+                    "CPU Usage", 'cpu')
+                }
             } else {
                 alert(result.message);
             }
         }});
     });
 
+
+    var load_chart = (timestamps, datapoints, chart_id, chart_name, type) => {
+        var timestamps_converted = timeConverter(timestamps);
+        var ctx_cpu = document.getElementById(type + chart_id).getContext('2d');
+        var myChart = new Chart(ctx_cpu, {
+            type: 'line',
+            data: {
+                labels: timestamps_converted,
+                datasets: [{
+                    label: chart_name + " for " + chart_id,
+                    data: datapoints,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: ''
+                },
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 50,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    }
 
     function timeConverter(rawTime) {
         return rawTime.map((element) => {

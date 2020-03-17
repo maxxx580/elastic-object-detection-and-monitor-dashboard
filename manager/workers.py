@@ -27,12 +27,21 @@ def get_worker_cpu_usage():
         }
     """
     try:
-        cpu_usage_data = manager.ec2_manager.get_cpu_utilization()
-        time_stamps, datapoints = _data_convert_helper(cpu_usage_data)
+        cpu_usages = []
+        instances = manager.ec2_manager.get_instances(alive=True)
+        for instance in instances:
+            datapoint = manager.ec2_manager.get_cpu_utilization_by_instance(
+                instance['InstanceId'])
+            time_stamps, datapoints = _data_convert_helper(datapoint)
+            cpu_usages.append({
+                'instance_id': instance['InstanceId'],
+                'timestamps': time_stamps,
+                'datapoints': datapoints
+            })
+
         return jsonify({
             'isSuccess': True,
-            'timestamps': time_stamps,
-            'datapoints': datapoints
+            'datapoints': cpu_usages
         })
     except botocore.exceptions.ClientError as e:
         return jsonify({
@@ -56,11 +65,19 @@ def get_worker_inbount_traffic():
         }
     """
     try:
-        request_count = manager.ec2_manager.get_elb_request_count()
-        time_stamps, datapoints = _data_convert_helper(request_count)
+        instances = manager.ec2_manager.get_instances(alive=True)
+        request_count = manager.ec2_manager.get_request_count()
+        time_stamps, data = _data_convert_helper(request_count)
+        datapoints = [
+            {
+                'instance_id': instance['InstanceId'],
+                'timestamps': time_stamps,
+                'datapoints': data
+            }
+            for instance in instances
+        ]
         return jsonify({
             'isSuccess': True,
-            'timestamps': time_stamps,
             'datapoints': datapoints
         })
     except botocore.exceptions.ClientError as e:
