@@ -24,7 +24,6 @@ scheduler.start()
 
 
 def create_app(test_config=None):
-
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(Config)
@@ -81,12 +80,10 @@ def update_request_count_metrics():
         client = boto3.client('cloudwatch', region_name='us-east-1')
         instance_id = get_instanceId()
         print(instance_id)
-        # value = i+1
-        value = 101
+        value = i + 1
         print(value)
         client.put_metric_data(
-            MetricData=[
-            {
+            MetricData=[{
                 'MetricName': 'CountHTTPMetric',
                 'Dimensions': [
                     {
@@ -97,8 +94,8 @@ def update_request_count_metrics():
                 'Unit': 'None',
                 'Value': value
             },
-        ],
-        Namespace='CountHTTPNameSpace'
+            ],
+            Namespace='CountHTTPNameSpace'
         )
     except:
         pass

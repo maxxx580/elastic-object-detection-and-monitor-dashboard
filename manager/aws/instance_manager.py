@@ -203,7 +203,7 @@ class InstanceManager:
             [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
         """
         statistics = 'Sum'
-        response = self.cw.get_metric_data(
+        response = self.cw.get_metric_statistics(
             Period=1 * 60,
             StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
             EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
