@@ -65,8 +65,8 @@ def create_app(test_config=None):
         logger.critical("request received")
         lock.release()
 
-    scheduler.add_job(func=update_request_count_metrics,
-                      trigger='interval', seconds=60)
+    # scheduler.add_job(func=update_request_count_metrics,
+    #                   trigger='interval', seconds=60)
     return app
 
 
@@ -78,7 +78,8 @@ def update_request_count_metrics():
                 pass
         # TODO: update aws custom metric here i+1 is the number of request in the past 1 min
         client = boto3.client('cloudwatch', region_name='us-east-1')
-        instance_id = get_instanceId()
+        # instance_id = get_instanceId()
+        instance_id = 'i-07ac7fe1685cda51c'
         print(instance_id)
         value = i + 1
         print(value)
