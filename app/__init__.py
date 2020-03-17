@@ -1,6 +1,7 @@
 import logging
 import os
 import threading
+import boto3
 from datetime import timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,7 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database, database_exists
 
 from app import error, image, user
-from app.config import Config
+from app.config import Config, get_instanceId
 
 from .user import login_required
 
@@ -77,6 +78,28 @@ def update_request_count_metrics():
             for i, l in enumerate(f):
                 pass
         # TODO: update aws custom metric here i+1 is the number of request in the past 1 min
+        client = boto3.client('cloudwatch', region_name='us-east-1')
+        instance_id = get_instanceId()
+        print(instance_id)
+        # value = i+1
+        value = 101
+        print(value)
+        client.put_metric_data(
+            MetricData=[
+            {
+                'MetricName': 'CountHTTPMetric',
+                'Dimensions': [
+                    {
+                        'Name': 'InstanceId',
+                        'Value': instance_id
+                    },
+                ],
+                'Unit': 'None',
+                'Value': value
+            },
+        ],
+        Namespace='CountHTTPNameSpace'
+        )
     except:
         pass
     finally:

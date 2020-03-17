@@ -195,6 +195,28 @@ class InstanceManager:
         )
         return self._data_conversion_helper(response, statistics)
 
+    def get_request_count_by_instance(self, instance_id):
+        """[summary] this method returns the sum of the number of request received by workers for the past 30 minutes.
+        resolution is 1 minute.
+
+        Returns:
+            [type] -- [description] a list of tuple. each tuple represents a data point with timestamp and value.
+        """
+        statistics = 'Sum'
+        response = self.cw.get_metric_data(
+            Period=1 * 60,
+            StartTime=datetime.utcnow() - timedelta(seconds=30 * 60),
+            EndTime=datetime.utcnow() - timedelta(seconds=0 * 60),
+            MetricName='CountHTTPMetric',
+            Namespace='CountHTTPNameSpace',
+            Statistics=[statistics],
+            Dimensions=[{
+                'Name': 'InstanceId',
+                'Value': instance_id
+            }]
+        )
+        return self._data_conversion_helper(response, statistics)
+
     def get_elb_healthy_host_count(self):
         """[summary] this method returns the maximum number of healthy targets in the elastic load balancer for the past
         30 minutes. resolution is 1 minute.

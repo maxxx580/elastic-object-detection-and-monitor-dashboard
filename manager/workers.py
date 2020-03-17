@@ -52,7 +52,7 @@ def get_worker_cpu_usage():
 
 @login_required
 @bp.route('/request_count', methods=['GET'])
-def get_worker_inbount_traffic():
+def get_worker_inbound_traffic():
     """[summary] this endpoint retrieves the sum of number of requests per minute for the past 30 minutes. 
 
     Returns:
@@ -65,20 +65,19 @@ def get_worker_inbount_traffic():
         }
     """
     try:
+        http_requests = []
         instances = manager.ec2_manager.get_instances(alive=True)
-        request_count = manager.ec2_manager.get_request_count()
-        time_stamps, data = _data_convert_helper(request_count)
-        datapoints = [
-            {
-                'instance_id': instance['InstanceId'],
-                'timestamps': time_stamps,
-                'datapoints': data
-            }
-            for instance in instances
-        ]
+        for instance in instances:
+            request_count = manager.ec2_manager.get_request_count_by_instance(instance['InstanceId'])
+            time_stamps, data = _data_convert_helper(request_count)
+            http_requests.append({
+                    'instance_id': instance['InstanceId'],
+                    'timestamps': time_stamps,
+                    'datapoints': request_count
+                })
         return jsonify({
             'isSuccess': True,
-            'datapoints': datapoints
+            'datapoints': http_requests
         })
     except botocore.exceptions.ClientError as e:
         return jsonify({
