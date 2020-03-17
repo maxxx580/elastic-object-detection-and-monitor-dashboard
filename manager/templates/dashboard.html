@@ -40,21 +40,24 @@
             <li class="nav-item">
                 <a class="nav-link" href="autoscale_policy">Auto-scale Policy</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="cpu_average">CPU Average</a>
+            </li>
             </ul>
             <a class="btn btn-outline-success my-2 my-sm-0 " role="submit" id="logoutButton">Logout</a>
         </div>
     </nav>
     <div id='charts-container'>
     </div>
- 
+
 </body>
 
   <script>
     $(document).ready(() => {
         $("#logoutButton").click(function(){
             $.ajax({
-                url: "logout", 
-                type: "POST", 
+                url: "logout",
+                type: "POST",
                 success: function(result) {
                     if (result["isSuccess"]) {
                         window.location.replace("login");
@@ -73,8 +76,8 @@
                             + '<canvas id=request'+ response['datapoints'][i]['instance_id'] + ' height="200vw" width="300vw"></canvas>'
                             + '</div>'
                     )
-                    load_chart(response['datapoints'][i]['timestamps'], 
-                        response['datapoints'][i]['datapoints'], 
+                    load_chart(response['datapoints'][i]['timestamps'],
+                        response['datapoints'][i]['datapoints'],
                         response['datapoints'][i]['instance_id'],
                         "request count", 'request')
                 }
@@ -92,8 +95,8 @@
                         + '<canvas id=cpu'+ response['datapoints'][i]['instance_id'] + ' height="200vw" width="300vw"></canvas>'
                         + '</div>'
                     )
-                    load_chart(response['datapoints'][i]['timestamps'], 
-                    response['datapoints'][i]['datapoints'], 
+                    load_chart(response['datapoints'][i]['timestamps'],
+                    response['datapoints'][i]['datapoints'],
                     response['datapoints'][i]['instance_id'],
                     "CPU Usage", 'cpu')
                 }

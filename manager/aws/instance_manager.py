@@ -26,7 +26,7 @@ class InstanceManager:
         # eric's elb
         self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:728815168568:targetgroup/worker/f7269e70cd56ae73'
         # sara's elb
-        # self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:882617376896:targetgroup/ece1779-sara-target-group/47a4e7a698f05363'
+        self.TargetGroupArn = 'arn:aws:elasticloadbalancing:us-east-1:882617376896:targetgroup/ece1779-sara-target-group/47a4e7a698f05363'
         self.security_group = ['launch-wizard-1']
         self.tag_specification = [{
             'ResourceType': 'instance',

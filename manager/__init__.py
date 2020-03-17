@@ -94,6 +94,14 @@ def create_app():
         """
         return render_template('autoscale_policy.html')
 
+    @app.route('/cpu_average')
+    def cpu_average():
+        """[summary] this endpoint renders the auto-scale policy page
+        Returns:
+            [type] -- [description] html for auto-scale policy
+        """
+        return render_template('cpu_average.html')
+
     @app.route('/terminate', methods=['POST'])
     @login_required
     def terminate():

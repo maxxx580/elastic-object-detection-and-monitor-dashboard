@@ -51,6 +51,35 @@ def get_worker_cpu_usage():
 
 
 @login_required
+@bp.route('/cpu_average', methods=['GET'])
+def get_worker_cpu_average_usage():
+    """[summary] this endpoint retrieves the average CPU user per minute for the past 30 minutes.
+
+    Returns:
+        [type] -- [description] this endpoints return a json object
+        {
+            isSuccess: boolean indicating if the action is successful,
+            timestamps: list of timestamps for each datapoint ,
+            datapoints: list of average cpu usage per minute,
+            message: error message if applicable
+        }
+    """
+    try:
+        cpu_usage_data = manager.ec2_manager.get_cpu_utilization()
+        time_stamps, datapoints = _data_convert_helper(cpu_usage_data)
+        return jsonify({
+            'isSuccess': True,
+            'timestamps': time_stamps,
+            'datapoints': datapoints
+        })
+    except botocore.exceptions.ClientError as e:
+        return jsonify({
+            'isSuccess': False,
+            'message': e.args
+        })
+
+
+@login_required
 @bp.route('/request_count', methods=['GET'])
 def get_worker_inbount_traffic():
     """[summary] this endpoint retrieves the sum of number of requests per minute for the past 30 minutes. 
