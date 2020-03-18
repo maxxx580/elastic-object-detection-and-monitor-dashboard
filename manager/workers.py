@@ -68,13 +68,14 @@ def get_worker_inbound_traffic():
         http_requests = []
         instances = manager.ec2_manager.get_instances(alive=True)
         for instance in instances:
-            request_count = manager.ec2_manager.get_request_count_by_instance(instance['InstanceId'])
+            request_count = manager.ec2_manager.get_request_count_by_instance(
+                instance['InstanceId'])
             time_stamps, data = _data_convert_helper(request_count)
             http_requests.append({
-                    'instance_id': instance['InstanceId'],
-                    'timestamps': time_stamps,
-                    'datapoints': request_count
-                })
+                'instance_id': instance['InstanceId'],
+                'timestamps': time_stamps,
+                'datapoints': data
+            })
         return jsonify({
             'isSuccess': True,
             'datapoints': http_requests
