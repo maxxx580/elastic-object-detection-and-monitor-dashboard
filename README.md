@@ -1,6 +1,5 @@
 # ece1779-a2
 
-## Overview
 The manager app allows manager to control the worker pool, each worker is an EC2 instance. Manager itself is deployed on a single EC2 and is set to run on port 5000.The size of worker pool can be scaled manually and automatically. All images are saved in S3 and all data is saved in RDS.
 
 The user app allows users to upload images and get the processed ones with objects detected. The load of user app is balanced by Load Balancer. 
@@ -111,7 +110,9 @@ This application exposes two endpoints below for testing purposes.
 
 ## Manager app interface
 The dashboard page shows two charts. The first chart shows the total CPU utilization of  workers for the past 30 minutes with the resolution of 1 minute. The second chart shows the rate of HTTP requests received by workers in each minute for the past 30 minutes.
-![manager dashboard](documentation/figures/manager_dashboard.png)
+![request count](documentation/figures/cpu_usage.png)
+
+![request count](documentation/figures/request_count2.png)
 
 The page "Number of workers" shows the number of healthy targets registered to ELB for the past 30 minutes with the resolution of 1 minute.
 ![manager workers](documentation/figures/manager_workers.png)
@@ -179,32 +180,26 @@ Lower threshold: 30%
 Increase ratio: 2
 Decrease ratio: 0.5
 ```
+![cpu page](documentation/figures/cpu_utilization.png) 
+![Number of workders page](documentation/figures/autoscale_workers_number.png) 
 
 ### Scale up
 
-Starting from 21:31, we used two load generators to upload pictures to test auto-scaler by turns and at the same time, which uploaded 2 and 4 pictures per seconds.  At 21:43, around 360 picture uploaded per minute, reaching the top inbound traffic in this particular test. In total, 1200 pictures were uploaded and processed.
+Starting from 14:45, we used two load generators to upload pictures to test auto-scaler by turns and at the same time, which uploaded 2 and 4 pictures per seconds. At 14:55, around 360 picture uploaded per minute, reaching the top inbound traffic in this particular test. In total, 1200 pictures were uploaded and processed.
 
-![Scaleup cpu page](documentation/figures/scaleup_CPU2.png) 
-![Scaleup target page](documentation/figures/scaleup_target2.png) 
-
-The CPU utilization went over the upper threshold 70%, auto-scaler started to react. The number of target jumped to 8, which was able to process the load, therefore, it didn't reach 10.
+At around 14:55, the CPU utilization went over the upper threshold 70%, auto-scaler started to react. The number of target jumped to 9 gradually.
 
 ### Scale down
 
-After 1200 pictures uploaded and processed, the CPU utilization dropped down from 21:44. 
-![Scaledown cpu page](documentation/figures/scaledown_CPU2.png) 
-![Scaledown target page](documentation/figures/scaledown_target2.png) 
+As we slowed down the rate of uploading pictures, 8 instances were redundant, as the CPU utilization decrease to below 30%. It halved 8 instances to 4.
 
-After the user stops uploading pictures, the CPU utilization decrease to below 30%. It halves 8 instances to 4, then 2, eventually 1.
+After we stopped uploading any picture, the number of instances were halved again to 2, eventually 1.
 
 ### Constant
 
-From 21:54, the number of instance remained stable at 1. The average CPU utilization r
+From 21:54, the number of instance remained stable at 1. Though the CPU utilization was below 30%, the last instance wouldn't be scaled down. 
 
-![constant cpu page](documentation/figures/constant_CPU2.png) 
-![constant target page](documentation/figures/constant_target2.png) 
-
-
+Also, the number of targets remained 4 and 2 for 4~5 minutes, because the CPU utilization was between 30% and 70%. The auto-scaler was not activated.
 
 ## Error Handling
 
