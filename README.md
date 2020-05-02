@@ -10,11 +10,6 @@ AMI ID of the user app: ami-0016a2318cd331666
 
 
 
-## Group members
-* Hongyu Liu 1005851295   
-* Ran Wang 1006126951   
-* Zixiang Ma 1005597285  
-
 ## Quick Start
 
 ### Start manager instance
