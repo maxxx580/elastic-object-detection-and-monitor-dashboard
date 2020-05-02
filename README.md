@@ -207,17 +207,17 @@ Also, the number of targets remained 4 and 2 for 4~5 minutes, because the CPU ut
 * Image Format: this application only accept format accepted by open cv framework, including bmp, pbm, pgm, ppm, sr, ras, jpeg, jpg, jpe, jp2, tiff, tif, png. The format should be explicitly identified as file extension. 
 
 ## Contribution of each member 
-* Hongyu Liu 1005851295
+* Hongyu Liu
 
   Stored information about user accounts and the location of photos owned by a user on
   AWS RDS. Implemented the auto-scaling algorithm. Improved the graphic user interfaces.  
 
 
-* Ran Wang 1006126951
+* Ran Wang
 
   Stored all photos (processed, unprocessed and thumbnails) in S3. Registered/Deregistered the workers to ELB.
 
 
-* Zixiang Ma 1005597285
+* Zixiang Ma
 
   Generated the two charts: total CPU utilization and the rate of HTTP requests. Generated the separate page showing the number of workers for the past 30 minutes. Added the register and login page for manager app. Generated a image for user app and deployed the manager app on EC2 instance. Generated IAM Roles to give permissions to the EC2 instances.
